@@ -14,7 +14,10 @@ export const generateQueue = (queueName: string) => {
 }
 
 export const generateWorker = (queueName: string, processor: any) => {
-  return new Worker(queueName, processor, {
+  const worker = new Worker(queueName, processor, {
     connection : {...QueueConnection, maxRetriesPerRequest: null, enableReadyCheck: false}
   })
+
+  worker.on('ready', () => console.log(`Worker for ${queueName} is ready`))
+  return worker
 }

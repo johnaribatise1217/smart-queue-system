@@ -18,9 +18,11 @@ export const emailWorker = generateWorker(
   async (job : any) => {
     if(job.name === 'welcome') {
       const {email, name} = job.data as WelcomeEmailJob;
+      console.log(`Sending welcome email to ${email}`)
       await sendWelcomeEmail(email, name)
     } else if(job.name === 'otp') {
       const {email, name, otpCode} = job.data as OtpEmailJob;
+      console.log(`Sending OTP email to ${email}`)
       await sendOtpEmail(email, name, otpCode)
     }
   }
