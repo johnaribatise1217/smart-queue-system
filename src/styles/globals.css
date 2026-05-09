@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --font-manrope: var(--font-manrope), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --background-image-homeBg: var(--welcome-bg);
+}
+
+:root {
+  font-family: var(--font-manrope);
+  --welcome-bg: url("/images/queuebg.jpg");
+}
+
+*::before,
+*::after,
+* {
+  box-sizing: border-box;
+}
