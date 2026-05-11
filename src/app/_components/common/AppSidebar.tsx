@@ -68,22 +68,22 @@ export function AppSidebar() {
             const isActive = pathname === item.href;
             return (
               <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton
-                  className={`
-                    rounded-2xl px-4 py-3 h-auto mt-5 text-sm font-[300] transition-all
-                    ${isActive
-                      ? "bg-[#3DBFA0] text-white hover:bg-[#3DBFA0] hover:text-white"
-                      : "text-blue-200 hover:bg-white/10 hover:text-white"
-                    }
-                  `}
-                >
-                  <Link href={item.href} className="flex items-center gap-3">
+                <Link href={item.href} className="flex items-center gap-3">
+                  <SidebarMenuButton
+                    className={`
+                      rounded-2xl px-4 py-3 h-auto mt-5 text-sm font-[300] transition-all
+                      ${isActive
+                        ? "bg-[#3DBFA0] text-white hover:bg-[#3DBFA0] hover:text-white"
+                        : "text-blue-200 hover:bg-white/10 hover:text-white"
+                      }
+                    `}
+                  >
                     <span className={isActive ? "text-white" : "text-blue-300"}>
                       {item.icon}
                     </span>
                     {item.label}
-                  </Link>
-                </SidebarMenuButton>
+                  </SidebarMenuButton>
+                </Link>
               </SidebarMenuItem>
             );
           })}
