@@ -56,7 +56,7 @@ export const authOptions = (req: NextApiRequest, res: NextApiResponse):
             ? localStorage.getItem("queue_role") ?? "user"
             : "user";
 
-        let existingUser = await User.findOne({ email: user.email })
+        let existingUser = await User.findOne({ email: user.email})
         if (!existingUser) {
           existingUser = await User.create({
             name: user.name,
@@ -75,12 +75,12 @@ export const authOptions = (req: NextApiRequest, res: NextApiResponse):
       return true
     },
     jwt: async ({ token, user }) => {
-      const jwtToken = token as Token
-      user && (token.user = user)
+      const jwtToken = token as { user: IUser }
+      if (user) token.user = user as unknown as IUser
 
       if (req?.url?.includes("/api/auth/session?update")) {
-        const updatedUser = await User.findById(jwtToken?.user?._id)
-        token.user = updatedUser
+        const updatedUser = await User.findById(jwtToken?.user?._id).lean()
+        if (updatedUser) token.user = updatedUser as unknown as IUser
       }
       return token
     },

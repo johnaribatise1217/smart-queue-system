@@ -1,13 +1,16 @@
 import "@/styles/globals.css";
 
 import { type Metadata } from "next";
-import {Manrope } from "next/font/google";
+import {Manrope, Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "sonner";
 import dbConnect from "backend/config/dbConnect";
 import { SessionProvider } from "next-auth/react";
 import { AuthProvider } from "./provider/AuthProvider";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "Smart Queue System",
@@ -26,7 +29,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   dbConnect()
   return (
-    <html lang="en" className={`${manrope.variable}`}>
+    <html lang="en" className={cn(manrope.variable, "font-sans", geist.variable)}>
       <body>
         <AuthProvider>
           <TRPCReactProvider>

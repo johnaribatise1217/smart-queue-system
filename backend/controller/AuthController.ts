@@ -4,6 +4,7 @@ import { User } from "backend/model/user";
 import { NextRequest, NextResponse } from "next/server";
 import { generateOtp } from "backend/utils/otpGenerator";
 import { emailQueue } from "backend/queue/email/email.worker";
+import { sendOtpEmail, sendWelcomeEmail } from "backend/utils/emailService";
 
 //register new user: /api/auth/register
 export const registerUser = catchAsyncErrors(
@@ -11,6 +12,14 @@ export const registerUser = catchAsyncErrors(
     try {
       const body = await req.json()
       const {name, email, password, phoneNumber, businessName, businessAddress, role} = body
+
+      const existingUser = await User.findOne({ email })
+      if (existingUser) {
+        return NextResponse.json(
+          { success: false, message: "Email is already registered" },
+          { status: 400 }
+        )
+      }
 
       await User.create({
         name, email, password, phoneNumber, businessName, businessAddress, role
@@ -26,6 +35,9 @@ export const registerUser = catchAsyncErrors(
       // Queue jobs instead of awaiting
       await emailQueue.add('welcome', { email, name })
       await emailQueue.add('otp', { email, name, otpCode })
+
+      // await sendWelcomeEmail(email, name)
+      // await sendOtpEmail(email, name, otpCode)
 
       return NextResponse.json(
         {success: true, message: "User registered successfully"}, 

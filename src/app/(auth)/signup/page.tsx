@@ -87,9 +87,7 @@ export default function SignupPage() {
   };
 
   const handleGoogle = async() => {
-    await signIn("google", {
-      callbackUrl: role === "admin" ? "/admin/dashboard" : "/user/dashboard",
-    });
+    await signIn("google", { callbackUrl: "/google-welcome" })
   };
 
   return (
