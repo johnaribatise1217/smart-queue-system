@@ -4,18 +4,23 @@ import { NextResponse } from "next/server"
 
 export default withAuth(
   async function middleware(req) {
-    const user = req.nextauth.token?.user as IUser | undefined
+    const token = req.nextauth.token
+    const user = token?.user as IUser | undefined
     const url = req?.nextUrl?.pathname
+
+    if (!token) {
+      return NextResponse.redirect(new URL("/login", req.url))
+    }
 
     if (!user) {
       return NextResponse.redirect(new URL("/login", req.url))
     }
 
-    if(url?.startsWith("/admin") &&  user?.role !== "admin"){
+    if (url?.startsWith("/admin") && user?.role !== "admin") {
       return NextResponse.redirect(new URL("/unauthorized", req.url))
     }
 
-    if(url?.startsWith("/user") &&  user?.role !== "user"){
+    if (url?.startsWith("/user") && user?.role !== "user") {
       return NextResponse.redirect(new URL("/unauthorized", req.url))
     }
 
@@ -31,4 +36,3 @@ export default withAuth(
 export const config = {
   matcher: ["/admin/:path*", "/user/:path*"],
 }
-

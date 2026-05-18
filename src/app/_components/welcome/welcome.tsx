@@ -1,13 +1,16 @@
 'use client'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
+import { useSession } from 'next-auth/react';
 
 type Role = "user" | "admin";
 
 const Welcome = () => {
   const [selected, setSelected] = useState<Role | null>(null);
+  const { data: session } = useSession();
+  const user = session?.user;
   const router = useRouter();
 
   const handleContinue = () => {

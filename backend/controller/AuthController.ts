@@ -36,9 +36,6 @@ export const registerUser = catchAsyncErrors(
       await emailQueue.add('welcome', { email, name })
       await emailQueue.add('otp', { email, name, otpCode })
 
-      // await sendWelcomeEmail(email, name)
-      // await sendOtpEmail(email, name, otpCode)
-
       return NextResponse.json(
         {success: true, message: "User registered successfully"}, 
         {status: 201})
@@ -142,5 +139,26 @@ export const updateUserProfile = catchAsyncErrors(
       {success: true, message: "User updated successfully"},
       {status: 200}
     ) 
+  }
+)
+
+//find user by session id: /api/auth/session/:sessionId
+export const getUserBySessionId = catchAsyncErrors(
+  async (
+    req: NextRequest,
+     { params }: { params: { sessionId: string } }
+  ) => {
+    const { sessionId } = params
+    const user = await User.findOne({ sessionId }).select('-password')
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: "User not found" },
+        { status: 404 }
+      )
+    }
+    return NextResponse.json(
+      { success: true, user },
+      { status: 200 }
+    )
   }
 )

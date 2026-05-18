@@ -11,6 +11,7 @@ export interface IUser extends Document{
     public_id : string,
     url : string
   },
+  sessionId: string
   businessName?: string;
   businessAddress?: string;
   phoneNumber: string
@@ -71,9 +72,14 @@ const userSchema : Schema<IUser> = new Schema({
       default : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png"
     }
   },
+  sessionId : {
+    type : String,
+    default : "",
+    unique : true
+  },
   role : {
     type : String,
-    default : 'admin'
+    default : 'user'
   },
   isVerified : {
     type : Boolean,
@@ -116,6 +122,9 @@ userSchema.methods.getResetPasswordToken = function() : string{
 //use static method to find user by email
 userSchema.statics.findUserByEmail = async function (email : string):Promise<IUser | null> {
   return await this.find({email}).select('-password')
+}
+userSchema.statics.findUserBySessionId = async function(sessionId : string):Promise<IUser | null> {
+  return await this.find({sessionId}).select('-password')
 }
 
 export const User = (models.User as Model<IUser>) || model<IUser>('User', userSchema);

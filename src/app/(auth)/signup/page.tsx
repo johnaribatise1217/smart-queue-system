@@ -103,13 +103,15 @@ export default function SignupPage() {
         <p className="text-xs text-gray-400 mt-0.5">Set up your profile to get started.</p>
       </div>
 
-      <button
-        onClick={handleGoogle}
-        className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-lg py-3 text-sm text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-      >
-        <FaGoogle />
-        Sign up with Google
-      </button>
+      {role === "user" && (
+        <button
+          onClick={handleGoogle}
+          className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-lg py-3 text-sm text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+        >
+          <FaGoogle />
+          Sign up with Google
+        </button>
+      )}
 
       <div className="flex items-center gap-3 my-5">
         <div className="flex-1 h-px bg-gray-200" />
@@ -206,9 +208,9 @@ export default function SignupPage() {
               onChange={(e) => update("confirmPassword", e.target.value)}
               className="flex-1 py-3 text-sm outline-none bg-transparent placeholder:text-gray-300"
             />
-            <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="text-xs text-gray-400 hover:text-gray-600 shrink-0">
+            {/* <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="text-xs text-gray-400 hover:text-gray-600 shrink-0">
               {showConfirm ? "Hide" : "Show"}
-            </button>
+            </button> */}
           </InputRow>
         </Field>
 

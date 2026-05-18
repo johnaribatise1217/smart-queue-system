@@ -74,14 +74,26 @@ export const authOptions = (req: NextApiRequest, res: NextApiResponse):
       }
       return true
     },
-    jwt: async ({ token, user }) => {
-      const jwtToken = token as { user: IUser }
-      if (user) token.user = user as unknown as IUser
+    jwt: async ({ token, user, account }) => {
+      // on initial sign in
+      if (user) {
+        if (account?.provider === "google") {
+          await dbConnect()
+          const dbUser = await User.findOne({ email: user.email }).select("-password")
+          if (dbUser) {
+            token.user = dbUser.toObject()
+          }
+        } else {
+          token.user = user as unknown as IUser
+        }
+      }
 
       if (req?.url?.includes("/api/auth/session?update")) {
-        const updatedUser = await User.findById(jwtToken?.user?._id).lean()
+        const jwtToken = token as { user: IUser }
+        const updatedUser = await User.findById(jwtToken?.user?._id).select("-password").lean()
         if (updatedUser) token.user = updatedUser as unknown as IUser
       }
+
       return token
     },
     session: async ({ session, token }) => {

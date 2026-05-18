@@ -4,10 +4,12 @@
 import { useSession } from "next-auth/react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useState } from "react";
+import Image from "next/image";
 
 export function AppNavbar() {
   const { data: session } = useSession();
   const user = session?.user;
+  const role = user?.role || "user";
   const [search, setSearch] = useState("");
 
   const greeting = () => {
@@ -28,7 +30,12 @@ export function AppNavbar() {
           <h1 className="text-[24px] font-[300] text-gray-900 leading-tight">
             {greeting()}, {firstName} 
           </h1>
-          <p className="text-xs text-gray-600">Manage your queue</p>
+          {role === "admin" && (
+            <p className="text-xs text-gray-600">Manage your cycle</p>
+          )}
+          {role === "user" && (
+            <p className="text-xs text-gray-600">Manage your queue</p>
+          )}
         </div>
 
         <div className="flex-1 max-w-md mx-auto lg:mx-6">
@@ -55,14 +62,16 @@ export function AppNavbar() {
           {/* User */}
           <div className="flex items-center gap-2.5 cursor-pointer group">
             {user?.avatar?.url ? (
-              <img
+              <Image
                 src={user?.avatar?.url}
-                alt={user.name ?? ""}
+                alt={user?.name ?? ""}
                 className="w-9 h-9 rounded-full object-cover border-2 border-gray-100"
+                width={40}
+                height={40}
               />
             ) : (
               <div className="w-9 h-9 rounded-full bg-[#2347C5] flex items-center justify-center text-white text-sm font-bold shrink-0">
-                {user?.name?.[0]?.toUpperCase()}
+                {user?.name?.split(" ")[0]?.split("")[0]?.toUpperCase() ?? "U"}
               </div>
             )}
             <div className="hidden md:block">

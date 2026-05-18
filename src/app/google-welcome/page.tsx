@@ -2,6 +2,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -45,7 +46,6 @@ export default function GoogleWelcomePage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 font-manrope px-4">
       <div className="bg-white rounded-3xl shadow-xl w-full max-w-md px-8 py-12 flex flex-col items-center text-center gap-6">
         
-        {/* Animated checkmark */}
         <div className="relative">
           <div className="w-20 h-20 rounded-full bg-[#3DBFA0]/10 flex items-center justify-center animate-pulse">
             <div className="w-14 h-14 rounded-full bg-[#3DBFA0]/20 flex items-center justify-center">
@@ -57,14 +57,16 @@ export default function GoogleWelcomePage() {
         </div>
 
         {session?.user?.avatar?.url ? (
-          <img
-            src={session.user.avatar.url}
+          <Image
+            src={session.user?.avatar?.url}
             alt={session.user.name ?? ""}
             className="w-16 h-16 rounded-full border-4 border-[#3DBFA0]/20 -mt-2"
+            width={64}
+            height={64}
           />
         ) : (
           <div className="w-16 h-16 rounded-full bg-[#3DBFA0] flex items-center justify-center text-white text-xl font-bold -mt-2">
-            {session?.user?.name?.[0]?.toUpperCase()}
+            {session?.user?.name?.split(" ")[0]?.split("")[0]?.toUpperCase() ?? "U"}
           </div>
         )}
 

@@ -12,5 +12,8 @@ export default async function Home() {
 
   if (!session) redirect("/login");
 
+  if(session.user?.role == "admin") redirect("/admin/dashboard");
+  if(session.user?.role == "user") redirect("/user/dashboard");
+
   return <Welcome />;
 }

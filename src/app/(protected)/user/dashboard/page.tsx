@@ -48,7 +48,6 @@ export default function UserDashboardPage() {
             src="/images/queue-hero.png"
             alt="Queue illustration"
             className="h-full object-contain object-bottom-right"
-            
           />
         </div>
       </div>
