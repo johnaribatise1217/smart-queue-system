@@ -29,8 +29,8 @@ const userNav: NavItem[] = [
 
 const adminNav: NavItem[] = [
   { label: "Dashboard", href: "/admin/dashboard", icon: <DashboardIcon /> },
-  { label: "History",   href: "/admin/history",   icon: <HistoryIcon /> },
-  { label: "Tickets",   href: "/admin/tickets",   icon: <TicketsIcon /> },
+  { label: "Queue History",   href: "/admin/queue-history",   icon: <HistoryIcon /> },
+  { label: "Cycles",   href: "/admin/cycles",   icon: <TicketsIcon /> },
   { label: "Support / Help", href: "/admin/support", icon: <SupportIcon /> },
 ];
 

@@ -4,7 +4,6 @@ import { User } from "backend/model/user";
 import { NextRequest, NextResponse } from "next/server";
 import { generateOtp } from "backend/utils/otpGenerator";
 import { emailQueue } from "backend/queue/email/email.worker";
-import { sendOtpEmail, sendWelcomeEmail } from "backend/utils/emailService";
 
 //register new user: /api/auth/register
 export const registerUser = catchAsyncErrors(
