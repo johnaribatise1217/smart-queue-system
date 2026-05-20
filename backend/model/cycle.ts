@@ -20,6 +20,7 @@ export interface ICycle extends Document {
   isActive: boolean;              // admin can open/close cycle
   createdAt: Date;
   updatedAt: Date;
+  cycleCode: string;              // unique code for users to join
 }
 
 const ScheduleDaySchema = new Schema<IScheduleDay>({
@@ -43,9 +44,38 @@ const CycleSchema = new Schema<ICycle>({
   enrolledUsers: [{ type: Schema.Types.ObjectId, ref: "User" }],
   waitingList:   [{ type: Schema.Types.ObjectId, ref: "User" }],
   isActive:    { type: Boolean, default: false },
+  cycleCode: {
+    type: String,
+    unique: true,
+    index: true,
+    default: ""
+  },
 }, { timestamps: true })
 
 CycleSchema.index({ adminId: 1, isActive: 1 })
 CycleSchema.index({ isActive: 1, "schedule.day": 1 })
+
+const generateCycleCode = async (model: any): Promise<string> => {
+  const chars = "0123456789"
+  let code: string
+  let exists: boolean
+
+  do {
+    const suffix = Array.from({ length: 4 }, () =>
+      chars[Math.floor(Math.random() * chars.length)]
+    ).join("")
+    code = `SMQ${suffix}`
+    exists = !!(await model.findOne({ cycleCode: code }))
+  } while (exists)
+
+  return code
+}
+
+CycleSchema.pre("save", async function (next) {
+  if (!this.cycleCode) {
+    this.cycleCode = await generateCycleCode(this.constructor)
+  }
+  next()
+})
 
 export const Cycle = (models.Cycle as Model<ICycle>) || model<ICycle>("Cycle", CycleSchema)

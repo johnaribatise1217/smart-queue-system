@@ -52,13 +52,13 @@ export function AppSidebar() {
         </div>
 
         <Link
-          href={isAdmin ? "/admin/create-cycle" : "/user/join-queue"}
+          href={isAdmin ? "/admin/create-cycle" : "/user/join-cycle"}
           className="mt-8 flex items-center gap-2.5 bg-white rounded-2xl px-4 py-3 text-[#171717] text-sm hover:bg-blue-50 transition-colors"
         >
           <span className="w-6 h-6 rounded-full bg-[#3DBFA0] flex items-center justify-center shrink-0">
             <PlusIcon />
           </span>
-          {isAdmin ? "Create a Cycle" : "Join a Queue"}
+          {isAdmin ? "Create a Cycle" : "Join a Cycle"}
         </Link>
       </SidebarHeader>
 

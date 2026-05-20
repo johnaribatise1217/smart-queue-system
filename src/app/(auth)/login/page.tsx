@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { signIn} from "next-auth/react";
+import { useState } from "react";
+import { signIn, useSession} from "next-auth/react";
 import type { SignInResponse } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -46,16 +46,12 @@ interface FormErrors {
 
 export default function LoginPage() {
   const router = useRouter();
-  const [role, setRole] = useState<string | null>(null);
+  const { data: session, status } = useSession();
   const [form, setForm] = useState({ email: "", password: "", remember: false });
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState("");
-
-  useEffect(() => {
-    setRole(localStorage.getItem("queue_role"));
-  }, []);
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
@@ -84,12 +80,12 @@ export default function LoginPage() {
         redirect: false,
         email: form.email,
         password: form.password,
-        role,
       });
 
       if(result && (result as SignInResponse).ok) {
         successToast("Logged in successfully!");
-        router.push(role === "admin" ? "/admin/dashboard" : "/user/dashboard");
+        const userRole = session?.user?.role;
+        router.push(userRole === "admin" ? "/admin/dashboard" : "/user/dashboard");
       } else {
         const msg = (result && (result as any).error) ?? 'Invalid credentials'
         errorToast(msg)

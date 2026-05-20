@@ -4,6 +4,7 @@ import { Cycle } from "backend/model/cycle"
 import { Queue } from "backend/model/queueModel"
 import { QueueHistory } from "backend/model/queueHistory"
 import { cycleQueue } from "backend/queue/cycle/cycle.worker"
+import { User } from "backend/model/user";
 
 export const createCycle = catchAsyncErrors(
   async (req: NextRequest) => {
@@ -175,8 +176,8 @@ export const getAllBusinessCyclesForUser = catchAsyncErrors(async (
 ) => {
   const cycles = await Cycle.find({adminId: params.adminId })
     .populate("queues", "name location order deliverables")
-    .populate("adminId", "name businessName")
-    .populate("isActive schedule name description maxUsers isActive")
+    .populate("adminId", "businessName businessAddress")
+    .select("isActive schedule name description isActive")
     .lean()
 
   return NextResponse.json({ success: true, data: cycles })
@@ -285,5 +286,136 @@ export const toggleCycleStatus = catchAsyncErrors(async (
     success: true,
     message: `Cycle ${isActive ? "activated" : "deactivated"} successfully`,
     data: { _id: cycle._id, isActive: cycle.isActive },
+  })
+})
+
+// GET /api/cycles/join?adminId=xxx&cycleId=xxx
+// Called when user scans QR code — gets business info + specific cycle
+export const getCycleByAdminIdForUser = catchAsyncErrors(async (req: NextRequest) => {
+  const { searchParams } = new URL(req.url)
+  const adminId = searchParams.get("adminId")
+  const cycleId = searchParams.get("cycleId")
+
+  if (!adminId || !cycleId) {
+    return NextResponse.json(
+      { success: false, message: "adminId and cycleId are required" },
+      { status: 400 }
+    )
+  }
+
+  const [cycle, admin] = await Promise.all([
+    Cycle.findOne({ _id: cycleId, adminId, isActive: true })
+      .populate({
+        path: "queues",
+        select: "name description location maxUsers deliverables order isActive",
+        options: { sort: { order: 1 } },
+      })
+      .select("name description isActive schedule maxUsers cycleCode queues createdAt")
+      .lean(),
+    User.findById(adminId)
+      .select("businessName businessAddress email")
+      .lean(),
+  ])
+
+  if (!cycle) {
+    return NextResponse.json(
+      { success: false, message: "Cycle not found or is not active" },
+      { status: 404 }
+    )
+  }
+
+  if (!admin) {
+    return NextResponse.json(
+      { success: false, message: "Business not found" },
+      { status: 404 }
+    )
+  }
+
+  return NextResponse.json({
+    success: true,
+    data: { cycle, business: admin },
+    message: "Cycle retrieved successfully",
+  })
+})
+
+// GET /api/cycles/details?cycleId=xxx
+// OR GET /api/cycles/details?cycleCode=SMQ1234
+// Called when user enters a cycle code manually
+export const getCycleDetailsForUser = catchAsyncErrors(async (req: NextRequest) => {
+  const { searchParams } = new URL(req.url)
+  const cycleId   = searchParams.get("cycleId")
+  const cycleCode = searchParams.get("cycleCode")
+
+  if (!cycleId && !cycleCode) {
+    return NextResponse.json(
+      { success: false, message: "cycleId or cycleCode is required" },
+      { status: 400 }
+    )
+  }
+
+  const query = cycleId ? { _id: cycleId } : { cycleCode: cycleCode?.toUpperCase() }
+
+  const cycle = await Cycle.findOne({ ...query, isActive: true })
+    .populate({
+      path: "queues",
+      select: "name description location maxUsers deliverables order isActive",
+      options: { sort: { order: 1 } },
+    })
+    .select("name description isActive schedule maxUsers cycleCode queues createdAt")
+    .lean()
+
+  if (!cycle) {
+    return NextResponse.json(
+      { success: false, message: "Cycle not found or is not active" },
+      { status: 404 }
+    )
+  }
+
+  // fetch the business info from adminId
+  const admin = await User.findById(cycle.adminId)
+    .select("businessName businessAddress email")
+    .lean()
+
+  return NextResponse.json({
+    success: true,
+    data: { cycle, business: admin },
+    message: "Cycle retrieved successfully",
+  })
+})
+
+// GET /api/cycles/business?adminId=xxx
+// All active cycles from a specific business — for "view other cycles" feature
+export const getAllCyclesByAdminId = catchAsyncErrors(async (req: NextRequest) => {
+  const { searchParams } = new URL(req.url)
+  const adminId = searchParams.get("adminId")
+
+  if (!adminId) {
+    return NextResponse.json(
+      { success: false, message: "adminId is required" },
+      { status: 400 }
+    )
+  }
+
+  const [cycles, admin] = await Promise.all([
+    Cycle.find({ adminId, isActive: true })
+      .select("name description isActive schedule maxUsers cycleCode queues createdAt")
+      .sort({ createdAt: -1 })
+      .lean(),
+    User.findById(adminId)
+      .select("businessName businessAddress email")
+      .lean(),
+  ])
+
+  if (!admin) {
+    return NextResponse.json(
+      { success: false, message: "Business not found" },
+      { status: 404 }
+    )
+  }
+
+  return NextResponse.json({
+    success: true,
+    data: { cycles, business: admin },
+    message: "Business cycles retrieved successfully",
   })
 })

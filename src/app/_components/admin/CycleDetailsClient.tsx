@@ -20,6 +20,8 @@ import {
 } from "react-icons/md";
 import { HiOutlineQueueList } from "react-icons/hi2";
 import { BsArrowDown } from "react-icons/bs";
+import { MdOutlineQrCode } from "react-icons/md"
+import QRCode from "react-qr-code"
 
 interface Deliverable {
   name: string;
@@ -50,12 +52,14 @@ interface ScheduleDay {
 }
 
 interface AdminInfo {
+  _id: string;
   name: string;
   businessName?: string;
   email: string;
 }
 
 interface Cycle {
+  cycleCode: string;
   _id: string;
   name: string;
   description: string;
@@ -80,6 +84,8 @@ export default function CycleDetailsClient({ cycle, adminId }: Props) {
   const [selectedQueueId, setSelectedQueueId] = useState<string>(
     cycle.queues[0]?._id ?? ""
   );
+  const [showQR, setShowQR] = useState(false)
+  const qrUrl = `${process.env.NEXT_PUBLIC_APP_URL}/join-cycle?adminId=${cycle.adminId._id}&cycleId=${cycle._id}`
 
   const selectedQueue = cycle.queues.find((q) => q._id === selectedQueueId) ?? null;
   const activeSchedule = cycle.schedule.filter((s) => s.isActive);
@@ -128,6 +134,12 @@ export default function CycleDetailsClient({ cycle, adminId }: Props) {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={() => setShowQR(true)}
+            className="flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-colors"
+          >
+            <MdOutlineQrCode size={15} /> QR Code
+          </button>
           <button
             onClick={() => toggleStatus(!cycle.isActive)}
             disabled={toggling}
@@ -477,7 +489,43 @@ export default function CycleDetailsClient({ cycle, adminId }: Props) {
           )}
         </div>
       </div>
+      {showQR && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-8 flex flex-col items-center gap-6">
+            <div className="text-center">
+              <h3 className="text-base font-bold text-gray-900">{cycle.name}</h3>
+              <p className="text-xs text-gray-400 mt-1">
+                Scan to join this cycle · Code: <span className="font-mono font-bold text-[#2347C5]">{cycle.cycleCode}</span>
+              </p>
+            </div>
 
+            <div className="p-4 bg-white border-2 border-gray-100 rounded-2xl">
+              <QRCode
+                value={qrUrl}
+                size={180}
+                fgColor="#2347C5"
+              />
+            </div>
+
+            <div className="w-full bg-gray-50 rounded-xl px-4 py-3 flex items-center gap-2">
+              <p className="text-xs text-gray-400 flex-1 break-all">{qrUrl}</p>
+              <button
+                onClick={() => navigator.clipboard.writeText(qrUrl)}
+                className="text-xs text-[#2347C5] font-semibold shrink-0 hover:underline"
+              >
+                Copy
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowQR(false)}
+              className="w-full border border-gray-200 text-gray-600 text-sm font-semibold py-3 rounded-xl hover:bg-gray-50 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}    
     </div>
   );
 }
