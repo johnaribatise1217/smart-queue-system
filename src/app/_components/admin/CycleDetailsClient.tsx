@@ -85,7 +85,7 @@ export default function CycleDetailsClient({ cycle, adminId }: Props) {
     cycle.queues[0]?._id ?? ""
   );
   const [showQR, setShowQR] = useState(false)
-  const qrUrl = `${process.env.NEXT_PUBLIC_APP_URL}/join-cycle?adminId=${cycle.adminId._id}&cycleId=${cycle._id}`
+  const qrUrl = `${process.env.NEXT_PUBLIC_APP_URL}/user/join-cycle?adminId=${cycle.adminId._id}&cycleId=${cycle._id}`
 
   const selectedQueue = cycle.queues.find((q) => q._id === selectedQueueId) ?? null;
   const activeSchedule = cycle.schedule.filter((s) => s.isActive);

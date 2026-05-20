@@ -1,4 +1,4 @@
-import { Document, Model, model, models, Schema, Types } from "mongoose";
+import mongoose, { Document, Model, model, Schema, Types } from "mongoose";
 
 export interface IScheduleDay {
   day: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
@@ -78,4 +78,4 @@ CycleSchema.pre("save", async function (next) {
   next()
 })
 
-export const Cycle = (models.Cycle as Model<ICycle>) || model<ICycle>("Cycle", CycleSchema)
+export const Cycle = (mongoose.models.Cycle as Model<ICycle>) || model<ICycle>("Cycle", CycleSchema)

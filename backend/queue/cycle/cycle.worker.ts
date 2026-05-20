@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { generateQueue, generateWorker } from "../config";
 import { Cycle } from "backend/model/cycle";
 import { Queue } from "backend/model/queueModel";

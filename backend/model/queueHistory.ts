@@ -1,4 +1,4 @@
-import { Document, Model, model, models, Schema, Types } from "mongoose";
+import mongoose, { Document, Model, model, Schema, Types } from "mongoose";
 
 export type CycleStatus = "waiting" | "inprogress" | "completed"
 
@@ -37,4 +37,4 @@ QueueHistorySchema.index({ userId: 1, cycleId: 1 }, { unique: true })
 QueueHistorySchema.index({ cycleId: 1, cycleStatus: 1 })
 QueueHistorySchema.index({ userId: 1, cycleStatus: 1 })
 
-export const QueueHistory = (models.QueueHistory as Model<IQueueHistory>) || model<IQueueHistory>("QueueHistory", QueueHistorySchema)
+export const QueueHistory = (mongoose.models.QueueHistory as Model<IQueueHistory>) || model<IQueueHistory>("QueueHistory", QueueHistorySchema)

@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -22,6 +22,8 @@ import {
 import { HiOutlineQueueList } from "react-icons/hi2";
 import { BsArrowDown } from "react-icons/bs";
 
+// ── Types ─────────────────────────────────────────────────────────────────────
+
 interface Deliverable {
   name: string;
   description: string;
@@ -36,8 +38,6 @@ interface QueueStep {
   description: string;
   location: string;
   maxUsers: number;
-  inProgressUsers: string[];
-  waitingList: string[];
   deliverables: Deliverable[];
   order: number;
   isActive: boolean;
@@ -58,8 +58,6 @@ interface CycleData {
   queues: QueueStep[];
   schedule: ScheduleDay[];
   maxUsers: number;
-  enrolledUsers: string[];
-  waitingList: string[];
   cycleCode: string;
   adminId: string;
 }
@@ -81,52 +79,55 @@ interface OtherCycle {
   _id: string;
   name: string;
   description: string;
-  enrolledUsers: string[];
   maxUsers: number;
   cycleCode: string;
   schedule: ScheduleDay[];
 }
 
+// ── API ───────────────────────────────────────────────────────────────────────
+
 const fetchByQRParams = async (adminId: string, cycleId: string): Promise<CycleResponse> => {
-  const res = await fetch(`/api/cycles/join?adminId=${adminId}&cycleId=${cycleId}`)
+  const res = await fetch(`/api/cycle/user/join?adminId=${adminId}&cycleId=${cycleId}`)
   const json = await res.json()
   if (!res.ok) throw new Error(json.message ?? "Cycle not found")
   return json.data
 }
 
 const fetchByCycleCode = async (code: string): Promise<CycleResponse> => {
-  const res = await fetch(`/api/cycles/details?cycleCode=${code.toUpperCase()}`)
+  const res = await fetch(`/api/cycle/user/details?cycleCode=${code.toUpperCase()}`)
   const json = await res.json()
   if (!res.ok) throw new Error(json.message ?? "Cycle not found")
   return json.data
 }
 
 const fetchBusinessCycles = async (adminId: string): Promise<{ cycles: OtherCycle[]; business: BusinessData }> => {
-  const res = await fetch(`/api/cycles/business?adminId=${adminId}`)
+  const res = await fetch(`/api/cycle/user/business?adminId=${adminId}`)
   const json = await res.json()
   if (!res.ok) throw new Error(json.message)
   return json.data
 }
 
-export default function JoinCycleClient() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const { data: session } = useSession()
-  const userId = session?.user?._id as any
-  const adminIdParam  = searchParams.get("adminId")
-  const cycleIdParam  = searchParams.get("cycleId")
-  const hasQRParams   = !!(adminIdParam && cycleIdParam)
+// ── Component ─────────────────────────────────────────────────────────────────
 
-  const [mode, setMode] = useState<"qr" | "code" | "result">(
-    hasQRParams ? "result" : "code"
-  )
+export default function JoinCycleClient() {
+  const searchParams  = useSearchParams()
+  const router        = useRouter()
+  const { data: session } = useSession()
+  const userId        = session?.user?._id as any
+
+  const adminIdParam = searchParams.get("adminId")
+  const cycleIdParam = searchParams.get("cycleId")
+  const hasQRParams  = !!(adminIdParam && cycleIdParam)
+
+  const [mode, setMode]               = useState<"qr" | "code" | "result">(hasQRParams ? "result" : "code")
   const [codeInput, setCodeInput]     = useState("")
   const [codeError, setCodeError]     = useState("")
   const [resolvedData, setResolvedData] = useState<CycleResponse | null>(null)
   const [showOtherCycles, setShowOtherCycles] = useState(false)
   const [joinSuccess, setJoinSuccess] = useState(false)
+  const [searchLoading, setSearchLoading] = useState(false)
 
-  // ── QR params auto-fetch
+  // ── QR auto-fetch ─────────────────────────────────────────────────────────
   const { data: qrData, isLoading: qrLoading, error: qrError } = useQuery({
     queryKey: ["join-cycle-qr", adminIdParam, cycleIdParam],
     queryFn: () => fetchByQRParams(adminIdParam!, cycleIdParam!),
@@ -137,7 +138,7 @@ export default function JoinCycleClient() {
     if (qrData) setResolvedData(qrData)
   }, [qrData])
 
-  // ── Other cycles fetch
+  // ── Other cycles ──────────────────────────────────────────────────────────
   const adminId = resolvedData?.cycle?.adminId ?? adminIdParam ?? ""
 
   const { data: businessData, isLoading: businessLoading } = useQuery({
@@ -146,9 +147,7 @@ export default function JoinCycleClient() {
     enabled: !!adminId && showOtherCycles,
   })
 
-  // ── Code submit
-  const [searchLoading, setSearchLoading] = useState(false)
-
+  // ── Code submit ───────────────────────────────────────────────────────────
   const handleCodeSubmit = async () => {
     if (!codeInput.trim()) { setCodeError("Please enter a cycle code"); return }
     const formatted = codeInput.trim().toUpperCase()
@@ -169,16 +168,13 @@ export default function JoinCycleClient() {
     }
   }
 
-  // ── Join mutation
-  const { mutate: joinCycle, isPending: joining } = useMutation({
+  // ── Join mutation ─────────────────────────────────────────────────────────
+  const { mutate: joinCycle, isPending: joining, error: joinError } = useMutation({
     mutationFn: async () => {
       const res = await fetch("/api/cycle/user/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          cycleId: resolvedData!.cycle._id,
-        }),
+        body: JSON.stringify({ userId, cycleId: resolvedData!.cycle._id }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.message ?? "Failed to join cycle")
@@ -190,22 +186,16 @@ export default function JoinCycleClient() {
     },
   })
 
-  const cycle    = resolvedData?.cycle
-  const business = resolvedData?.business
+  const cycle           = resolvedData?.cycle
+  const business        = resolvedData?.business
+  const activeSchedule  = cycle?.schedule.filter((s) => s.isActive) ?? []
 
-  const isFull = cycle
-    ? cycle.enrolledUsers.length >= cycle.maxUsers
-    : false
-
-  const activeSchedule = cycle?.schedule.filter((s) => s.isActive) ?? []
-
-  // ── Render: code entry
+  // ── Render: code entry ────────────────────────────────────────────────────
   if (mode === "code" && !hasQRParams) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 font-manrope">
         <div className="w-full max-w-md">
 
-          {/* Logo */}
           <div className="flex items-center gap-2.5 mb-8">
             <div className="w-9 h-9 rounded-xl bg-[#3DBFA0] flex items-center justify-center">
               <HiOutlineQueueList size={18} className="text-white" />
@@ -221,7 +211,6 @@ export default function JoinCycleClient() {
               </p>
             </div>
 
-            {/* Entry options */}
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => setMode("code")}
@@ -239,11 +228,11 @@ export default function JoinCycleClient() {
               </button>
             </div>
 
-            {/* Code input */}
             <div className="flex flex-col gap-2">
               <label className="text-xs font-medium text-gray-500">Cycle Code</label>
               <div className="flex gap-2">
-                <div className={`flex-1 flex items-center border rounded-xl px-4 gap-2 transition-colors ${codeError ? "border-red-400" : "border-gray-200 focus-within:border-[#2347C5]"}`}>
+                <div className={`flex-1 flex items-center border rounded-xl px-4 gap-2 transition-colors
+                  ${codeError ? "border-red-400" : "border-gray-200 focus-within:border-[#2347C5]"}`}>
                   <span className="text-sm font-bold text-gray-400">SMQ</span>
                   <input
                     type="text"
@@ -283,22 +272,18 @@ export default function JoinCycleClient() {
     )
   }
 
-  // ── Render: QR scanner mode
+  // ── Render: QR scanner ────────────────────────────────────────────────────
   if (mode === "qr") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 font-manrope">
         <div className="w-full max-w-md bg-white rounded-2xl border border-gray-100 p-8 flex flex-col gap-6">
-          <button
-            onClick={() => setMode("code")}
-            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 w-fit"
-          >
+          <button onClick={() => setMode("code")} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 w-fit">
             <MdOutlineArrowBack size={16} /> Back
           </button>
           <div className="text-center">
             <h2 className="text-lg font-bold text-gray-900">Scan QR Code</h2>
             <p className="text-xs text-gray-400 mt-1">Point your camera at the admin's QR code</p>
           </div>
-          {/* Camera viewfinder UI — browser handles via URL navigation after scan */}
           <div className="w-full aspect-square bg-gray-100 rounded-2xl flex flex-col items-center justify-center gap-4 border-2 border-dashed border-gray-200">
             <MdOutlineQrCodeScanner size={48} className="text-gray-300" />
             <p className="text-xs text-gray-400 text-center max-w-[200px]">
@@ -316,7 +301,7 @@ export default function JoinCycleClient() {
     )
   }
 
-  // ── Render: loading QR data
+  // ── Render: loading ───────────────────────────────────────────────────────
   if (hasQRParams && qrLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 font-manrope">
@@ -333,7 +318,7 @@ export default function JoinCycleClient() {
     )
   }
 
-  // ── Render: error
+  // ── Render: QR error ──────────────────────────────────────────────────────
   if (qrError && hasQRParams) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 font-manrope">
@@ -356,7 +341,7 @@ export default function JoinCycleClient() {
     )
   }
 
-  // ── Render: success
+  // ── Render: success ───────────────────────────────────────────────────────
   if (joinSuccess) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 font-manrope">
@@ -376,14 +361,13 @@ export default function JoinCycleClient() {
     )
   }
 
-  // ── Render: cycle result
+  // ── Render: cycle result ──────────────────────────────────────────────────
   if (!cycle || !business) return null
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 font-manrope">
       <div className="max-w-lg mx-auto flex flex-col gap-5">
 
-        {/* Back button */}
         <button
           onClick={() => { setMode("code"); setResolvedData(null); router.replace("/join-cycle") }}
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 w-fit"
@@ -412,35 +396,26 @@ export default function JoinCycleClient() {
 
         {/* Cycle info */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col gap-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-base font-bold text-gray-900">{cycle.name}</h3>
-                <span className="text-xs font-mono bg-[#EEF2FF] text-[#2347C5] px-2 py-0.5 rounded-lg font-semibold">
-                  {cycle.cycleCode}
-                </span>
-              </div>
-              <p className="text-xs text-gray-400 mt-1 leading-relaxed">{cycle.description}</p>
-            </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-base font-bold text-gray-900">{cycle.name}</h3>
+            <span className="text-xs font-mono bg-[#EEF2FF] text-[#2347C5] px-2 py-0.5 rounded-lg font-semibold">
+              {cycle.cycleCode}
+            </span>
           </div>
+          <p className="text-xs text-gray-400 leading-relaxed -mt-2">{cycle.description}</p>
 
-          {/* Stats row */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Stats — only what we have */}
+          <div className="grid grid-cols-2 gap-3">
             <div className="bg-gray-50 rounded-xl px-3 py-2.5 text-center">
-              <p className="text-xs text-gray-400">Queues</p>
+              <p className="text-xs text-gray-400">Queue Steps</p>
               <p className="text-lg font-bold text-gray-900">{cycle.queues.length}</p>
             </div>
             <div className="bg-gray-50 rounded-xl px-3 py-2.5 text-center">
-              <p className="text-xs text-gray-400">Enrolled</p>
-              <p className={`text-lg font-bold ${isFull ? "text-red-500" : "text-gray-900"}`}>
-                {cycle.enrolledUsers.length}/{cycle.maxUsers}
-              </p>
-            </div>
-            <div className="bg-gray-50 rounded-xl px-3 py-2.5 text-center">
-              <p className="text-xs text-gray-400">Waiting</p>
-              <p className={`text-lg font-bold ${cycle.waitingList.length > 0 ? "text-orange-500" : "text-gray-900"}`}>
-                {cycle.waitingList.length}
-              </p>
+              <p className="text-xs text-gray-400">Max Capacity</p>
+              <div className="flex items-center justify-center gap-1">
+                <MdOutlinePeople size={14} className="text-[#3DBFA0]" />
+                <p className="text-lg font-bold text-gray-900">{cycle.maxUsers}</p>
+              </div>
             </div>
           </div>
 
@@ -449,7 +424,10 @@ export default function JoinCycleClient() {
             <div className="flex flex-col gap-2">
               <p className="text-xs font-medium text-gray-500">Schedule</p>
               {activeSchedule.map((s) => (
-                <div key={s.day} className="flex items-center justify-between bg-[#f5f7ff] border border-[#e0e7ff] rounded-xl px-4 py-2.5">
+                <div
+                  key={s.day}
+                  className="flex items-center justify-between bg-[#f5f7ff] border border-[#e0e7ff] rounded-xl px-4 py-2.5"
+                >
                   <div className="flex items-center gap-2">
                     <MdOutlineCalendarMonth size={13} className="text-[#2347C5]" />
                     <span className="text-sm font-medium text-gray-700">{s.day}</span>
@@ -487,24 +465,28 @@ export default function JoinCycleClient() {
                       {q.deliverables.length > 0 && (
                         <div className="flex gap-1.5 flex-wrap mt-2">
                           {q.deliverables.map((d, di) => (
-                            <span key={di} className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md font-medium ${
-                              d.type === "uploadable"
-                                ? "bg-[#EEF2FF] text-[#2347C5]"
-                                : "bg-[#f0faf7] text-[#3DBFA0]"
-                            }`}>
+                            <span
+                              key={di}
+                              className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md font-medium ${
+                                d.type === "uploadable"
+                                  ? "bg-[#EEF2FF] text-[#2347C5]"
+                                  : "bg-[#f0faf7] text-[#3DBFA0]"
+                              }`}
+                            >
                               {d.type === "uploadable"
                                 ? <MdOutlineUploadFile size={11} />
                                 : <MdOutlineArticle size={11} />
                               }
-                              {d.name}
-                              {d.required && " *"}
+                              {d.name}{d.required && " *"}
                             </span>
                           ))}
                         </div>
                       )}
                     </div>
+                    {/* max users per queue point — still available */}
                     <div className="text-right shrink-0">
-                      <p className="text-xs text-gray-400">{q.inProgressUsers.length}/{q.maxUsers}</p>
+                      <p className="text-xs text-gray-400">Max</p>
+                      <p className="text-xs font-semibold text-gray-600">{q.maxUsers}</p>
                     </div>
                   </div>
                   {i < cycle.queues.length - 1 && (
@@ -520,38 +502,35 @@ export default function JoinCycleClient() {
           </div>
         )}
 
+        {/* Join error */}
+        {joinError && (
+          <div className="flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+            </svg>
+            <p className="text-xs text-red-600">{(joinError as Error).message}</p>
+          </div>
+        )}
+
         {/* Join button */}
         <div className="flex flex-col gap-3">
-          {isFull && cycle.waitingList.length >= 0 && (
-            <div className="flex items-center gap-2.5 bg-orange-50 border border-orange-100 rounded-xl px-4 py-3">
-              <MdOutlinePeople size={16} className="text-orange-400 shrink-0" />
-              <p className="text-xs text-orange-600">
-                Cycle is full — you'll be added to the waiting list ({cycle.waitingList.length} ahead of you)
-              </p>
-            </div>
-          )}
-
           <button
             onClick={() => joinCycle()}
             disabled={joining || !userId}
             className="w-full bg-[#2347C5] text-white text-sm font-semibold py-4 rounded-xl hover:bg-[#1a38a8] active:scale-[0.98] transition-all disabled:opacity-60"
           >
-            {joining
-              ? "Joining..."
-              : isFull
-              ? "Join Waiting List"
-              : "Join Cycle"
-            }
+            {joining ? "Joining..." : "Join Cycle"}
           </button>
 
           {!userId && (
             <p className="text-center text-xs text-gray-400">
-              <Link href="/login" className="text-[#2347C5] font-semibold">Sign in</Link> to join this cycle
+              <Link href="/login" className="text-[#2347C5] font-semibold">Sign in</Link>{" "}
+              to join this cycle
             </p>
           )}
         </div>
 
-        {/* View other cycles from this business */}
+        {/* Other cycles */}
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <button
             onClick={() => setShowOtherCycles(!showOtherCycles)}
@@ -563,7 +542,7 @@ export default function JoinCycleClient() {
               </p>
               <p className="text-xs text-gray-400 mt-0.5">Browse more queues from this business</p>
             </div>
-            <span className={`text-[#2347C5] text-xs font-semibold transition-transform ${showOtherCycles ? "rotate-180" : ""}`}>
+            <span className={`text-[#2347C5] text-xs font-semibold transition-transform duration-200 inline-block ${showOtherCycles ? "rotate-180" : ""}`}>
               ▼
             </span>
           </button>
@@ -572,7 +551,7 @@ export default function JoinCycleClient() {
             <div className="mt-4 flex flex-col gap-2">
               {businessLoading ? (
                 <div className="flex flex-col gap-2 animate-pulse">
-                  {[1,2].map((i) => (
+                  {[1, 2].map((i) => (
                     <div key={i} className="h-16 bg-gray-100 rounded-xl" />
                   ))}
                 </div>
@@ -583,7 +562,7 @@ export default function JoinCycleClient() {
                     .map((c) => (
                       <Link
                         key={c._id}
-                        href={`/join-cycle?adminId=${adminId}&cycleId=${c._id}`}
+                        href={`/user/join-cycle?adminId=${adminId}&cycleId=${c._id}`}
                         className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-[#2347C5] hover:bg-[#f5f7ff] transition-all group"
                       >
                         <div>
@@ -591,7 +570,7 @@ export default function JoinCycleClient() {
                             {c.name}
                           </p>
                           <p className="text-xs text-gray-400 mt-0.5">
-                            {c.enrolledUsers.length}/{c.maxUsers} enrolled · {c.cycleCode}
+                            Max {c.maxUsers} users · {c.cycleCode}
                           </p>
                         </div>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:stroke-[#2347C5]">

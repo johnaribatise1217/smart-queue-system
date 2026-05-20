@@ -62,7 +62,7 @@ export const getUserActiveQueue = catchAsyncErrors(async (req: NextRequest) => {
     cycleStatus: { $in: ["waiting", "inprogress"] },
   })
     .populate("cycleId", "name description schedule maxUsers")
-    .populate("currentQueueId", "name location order maxUsers inProgressUsers")
+    .populate("currentQueueId", "name location order maxUsers")
     .populate("completedQueues", "name order")
     .lean()
 

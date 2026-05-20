@@ -1,4 +1,4 @@
-import { Document, Model, model, models, Schema, Types } from "mongoose";
+import mongoose, { Document, Model, model, Schema, Types } from "mongoose";
 
 export interface IDeliverable {
   name: string;
@@ -48,4 +48,4 @@ const QueueSchema = new Schema<IQueue>({
 QueueSchema.index({ cycleId: 1, order: 1 })
 QueueSchema.index({ cycleId: 1, isActive: 1 })
 
-export const Queue = (models.Queue as Model<IQueue>) || model<IQueue>("Queue", QueueSchema)
+export const Queue = (mongoose.models.Queue as Model<IQueue>) || model<IQueue>("Queue", QueueSchema)

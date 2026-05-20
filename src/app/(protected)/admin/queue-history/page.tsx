@@ -225,7 +225,7 @@ export default function AdminQueueHistoryPage() {
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2.5">
                         {entry.userId.avatar?.url ? (
-                          <Image src={entry.userId.avatar.url} alt={entry.userId.name} className="w-8 h-8 rounded-full object-cover shrink-0" fill/>
+                          <Image src={entry.userId.avatar.url} alt={entry.userId.name} className="w-8 h-8 rounded-full object-cover shrink-0" height={32} width={32} />
                         ) : (
                           <div className="w-8 h-8 rounded-full bg-[#2347C5] flex items-center justify-center text-white text-xs font-bold shrink-0">
                             {entry.userId.name?.[0]?.toUpperCase()}
