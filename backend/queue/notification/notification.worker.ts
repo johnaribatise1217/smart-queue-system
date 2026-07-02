@@ -68,7 +68,7 @@ async function sendNotificationEmail(
   message: string
 ) {
   const nodemailer = await import("nodemailer")
-  const transporter = nodemailer.default.createTransport({
+  const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT),
     secure: process.env.SMTP_SECURE === "true",

@@ -1,8 +1,8 @@
 import 'dotenv/config'
-import nodemailer from "nodemailer";
+import nodemailer from 'nodemailer'
 import { otpTemplate, passwordResetTemplate, welcomeTemplate } from "./emailTemplates";
 
-const transporter = nodemailer.default.createTransport({
+const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT),
   secure: process.env.SMTP_SECURE === "true",
