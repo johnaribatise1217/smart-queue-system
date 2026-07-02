@@ -1,14 +1,18 @@
 import { AppNavbar } from "@/app/_components/common/AppNavbar"
+import { AppSidebar } from "@/app/_components/common/AppSidebar"
 import { SidebarProvider } from "@/components/ui/sidebar"
 
 export default function QueuePointLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <div className="flex flex-col min-h-screen w-full">
-        <AppNavbar />
-        <main className="flex-1 bg-gray-50 overflow-y-auto">
-          {children}
-        </main>
+      <div className="flex h-screen w-full overflow-hidden font-manrope">
+        <AppSidebar />
+        <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+          <AppNavbar />
+          <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
+            {children}
+          </main>
+        </div>
       </div>
     </SidebarProvider>
   )

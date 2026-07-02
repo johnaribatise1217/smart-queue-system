@@ -24,22 +24,38 @@ const userNav: NavItem[] = [
   { label: "Dashboard", href: "/user/dashboard", icon: <DashboardIcon /> },
   { label: "History",   href: "/user/history",   icon: <HistoryIcon /> },
   { label: "Tickets",   href: "/user/tickets",   icon: <TicketsIcon /> },
-  { label: "Support / Help", href: "/user/support", icon: <SupportIcon /> },
 ];
 
 const adminNav: NavItem[] = [
   { label: "Dashboard", href: "/admin/dashboard", icon: <DashboardIcon /> },
   { label: "Queue History",   href: "/admin/queue-history",   icon: <HistoryIcon /> },
   { label: "Cycles",   href: "/admin/cycles",   icon: <TicketsIcon /> },
-  { label: "Support / Help", href: "/admin/support", icon: <SupportIcon /> },
+  { label: "Queue Points", href: "/admin/queue-points", icon: <SupportIcon /> },
 ];
+
+const queuePointNav: NavItem[] = [
+  { label: "Dashboard",   href: "/queue-point/dashboard",    icon: <DashboardIcon /> },
+  { label: "Documents",   href: "/queue-point/deliverables", icon: <TicketsIcon /> },
+]
 
 export function AppSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const role = session?.user?.role;
   const isAdmin = role === "admin";
-  const navItems = isAdmin ? adminNav : userNav;
+
+  const navItems = isAdmin
+  ? adminNav
+  : role === "queue_point"
+  ? queuePointNav
+  : userNav
+
+  const ctaConfig = {
+    admin:       { href: "/admin/create-cycle",    label: "Create a Cycle" },
+    user:        { href: "/join-cycle",            label: "Join a Queue" },
+    queue_point: { href: "/queue-point/dashboard", label: "My Queue" },
+  }
+  const cta = ctaConfig[role as keyof typeof ctaConfig] ?? ctaConfig.user
 
   return (
     <Sidebar className="font-manrope border-none font-extralight">
@@ -52,13 +68,13 @@ export function AppSidebar() {
         </div>
 
         <Link
-          href={isAdmin ? "/admin/create-cycle" : "/user/join-cycle"}
+          href={cta.href}
           className="mt-8 flex items-center gap-2.5 bg-white rounded-2xl px-4 py-3 text-[#171717] text-sm hover:bg-blue-50 transition-colors"
         >
           <span className="w-6 h-6 rounded-full bg-[#3DBFA0] flex items-center justify-center shrink-0">
             <PlusIcon />
           </span>
-          {isAdmin ? "Create a Cycle" : "Join a Cycle"}
+          {cta.label}
         </Link>
       </SidebarHeader>
 
