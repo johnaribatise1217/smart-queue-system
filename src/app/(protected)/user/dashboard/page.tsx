@@ -61,7 +61,7 @@ export default function UserDashboardPage() {
             Don&apos;t just stand aimlessly, know when it&apos;s time to submit the document
           </p>
           <Link
-            href="/join-cycle"
+            href="/user/join-cycle"
             className="mt-6 inline-flex items-center gap-2 bg-[#2347C5] text-white text-sm font-semibold px-6 py-3 rounded-xl hover:bg-[#1a38a8] transition-colors"
           >
             Join a Cycle
@@ -156,7 +156,7 @@ export default function UserDashboardPage() {
               <HiOutlineQueueList size={16} className="text-gray-400" />
             </div>
             <p className="text-xs text-gray-400 flex-1">You are not in any active queue.</p>
-            <Link href="/join-cycle" className="text-xs text-[#2347C5] font-semibold hover:underline shrink-0">
+            <Link href="/user/join-cycle" className="text-xs text-[#2347C5] font-semibold hover:underline shrink-0">
               Join one →
             </Link>
           </div>
@@ -200,7 +200,7 @@ export default function UserDashboardPage() {
         <h3 className="text-base font-semibold text-gray-800 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <Link
-            href="/join-cycle"
+            href="/user/join-cycle"
             className="bg-white rounded-2xl p-5 border border-gray-100 hover:border-[#3DBFA0] hover:shadow-sm transition-all group flex flex-col gap-3"
           >
             <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] flex items-center justify-center group-hover:bg-[#3DBFA0]/10 transition-colors">

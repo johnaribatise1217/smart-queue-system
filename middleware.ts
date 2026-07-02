@@ -24,6 +24,10 @@ export default withAuth(
       return NextResponse.redirect(new URL("/unauthorized", req.url))
     }
 
+    if (url?.startsWith("/queue-point") && user?.role !== "queue_point") {
+    return NextResponse.redirect(new URL("/unauthorized", req.url))
+  }
+
     return NextResponse.next()
   },
   {
@@ -34,5 +38,5 @@ export default withAuth(
 )
 
 export const config = {
-  matcher: ["/admin/:path*", "/user/:path*"],
+  matcher: ["/admin/:path*", "/user/:path*", "/queue-point/:path*"],
 }

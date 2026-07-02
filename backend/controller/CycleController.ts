@@ -23,6 +23,148 @@ export const createCycle = catchAsyncErrors(
   }
 )
 
+// PATCH /api/cycle/[cycleId]/edit
+export const updateCycle = catchAsyncErrors(async (
+  req: NextRequest,
+  { params }: { params: { cycleId: string } }
+) => {
+  const { cycleId } = params
+  const { searchParams } = new URL(req.url)
+  const adminId = searchParams.get("adminId")
+  const body = await req.json()
+  const { name, description, maxUsers, schedule } = body
+
+  if (!adminId) {
+    return NextResponse.json(
+      { success: false, message: "adminId is required" },
+      { status: 400 }
+    )
+  }
+
+  const cycle = await Cycle.findById(cycleId)
+  if (!cycle) {
+    return NextResponse.json(
+      { success: false, message: "Cycle not found" },
+      { status: 404 }
+    )
+  }
+
+  if (cycle.adminId.toString() !== adminId) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized" },
+      { status: 403 }
+    )
+  }
+
+  if (name)        cycle.name        = name
+  if (description) cycle.description = description
+  if (maxUsers)    cycle.maxUsers    = maxUsers
+  if (schedule)    cycle.schedule    = schedule
+
+  await cycle.save()
+
+  return NextResponse.json({
+    success: true,
+    message: "Cycle updated successfully",
+    data: cycle,
+  })
+})
+
+// PATCH /api/cycle/queue/[queueId]
+export const updateQueue = catchAsyncErrors(async (
+  req: NextRequest,
+  { params }: { params: { queueId: string } }
+) => {
+  const { queueId } = params
+  const { searchParams } = new URL(req.url)
+  const adminId = searchParams.get("adminId")
+  const body = await req.json()
+  const { name, description, location, maxUsers, deliverables } = body
+
+  if (!adminId) {
+    return NextResponse.json(
+      { success: false, message: "adminId is required" },
+      { status: 400 }
+    )
+  }
+
+  const queue = await Queue.findById(queueId).populate("cycleId", "adminId")
+  if (!queue) {
+    return NextResponse.json(
+      { success: false, message: "Queue not found" },
+      { status: 404 }
+    )
+  }
+
+  const cycleAdminId = (queue.cycleId as any)?.adminId?.toString()
+  if (cycleAdminId !== adminId) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized" },
+      { status: 403 }
+    )
+  }
+
+  if (name)         queue.name         = name
+  if (description)  queue.description  = description
+  if (location)     queue.location     = location
+  if (maxUsers)     queue.maxUsers     = maxUsers
+  if (deliverables) queue.deliverables = deliverables
+
+  await queue.save()
+
+  return NextResponse.json({
+    success: true,
+    message: "Queue updated successfully",
+    data: queue,
+  })
+})
+
+// DELETE /api/cycle/queue/[queueId]
+export const deleteQueue = catchAsyncErrors(async (
+  req: NextRequest,
+  { params }: { params: { queueId: string } }
+) => {
+  const { queueId } = params
+  const { searchParams } = new URL(req.url)
+  const adminId = searchParams.get("adminId")
+
+  const queue = await Queue.findById(queueId).populate("cycleId", "adminId")
+  if (!queue) {
+    return NextResponse.json(
+      { success: false, message: "Queue not found" },
+      { status: 404 }
+    )
+  }
+
+  const cycleAdminId = (queue.cycleId as any)?.adminId?.toString()
+  if (cycleAdminId !== adminId) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized" },
+      { status: 403 }
+    )
+  }
+
+  await Promise.all([
+    queue.deleteOne(),
+    Cycle.findByIdAndUpdate(queue.cycleId, {
+      $pull: { queues: queueId }
+    }),
+    // reorder remaining queues
+    Queue.find({ cycleId: queue.cycleId, order: { $gt: queue.order } })
+      .then((queues) =>
+        Promise.all(queues.map((q, i) => {
+          q.order = queue.order + i
+          return q.save()
+        }))
+      ),
+  ])
+
+  return NextResponse.json({
+    success: true,
+    message: "Queue deleted successfully",
+  })
+})
+
 export const addQueueToCycle = catchAsyncErrors(
   async (req: NextRequest) => {
     const body = await req.json()
@@ -371,10 +513,19 @@ export const getCycleDetailsForUser = catchAsyncErrors(async (req: NextRequest) 
     )
   }
 
+  console.log(cycle)
+
   // fetch the business info from adminId
-  const admin = await User.findById(cycle.adminId)
+  const admin = await User.findOne(cycle.adminId)
     .select("businessName businessAddress email")
     .lean()
+
+  if (!admin) {
+    return NextResponse.json(
+      { success: false, message: "Business not found" },
+      { status: 404 }
+    )
+  }
 
   return NextResponse.json({
     success: true,
@@ -418,4 +569,41 @@ export const getAllCyclesByAdminId = catchAsyncErrors(async (req: NextRequest) =
     data: { cycles, business: admin },
     message: "Business cycles retrieved successfully",
   })
+})
+
+// GET /api/cycle/user/history-detail?historyId=xxx
+export const getCycleDetailForUserHistory = catchAsyncErrors(
+  async (req: NextRequest) => {
+    const { searchParams } = new URL(req.url)
+    const historyId = searchParams.get("historyId")
+
+    if (!historyId) {
+      return NextResponse.json(
+        { success: false, message: "historyId is required" },
+        { status: 400 }
+      )
+    }
+
+    const history = await QueueHistory.findById(historyId)
+      .populate({
+        path: "cycleId",
+        select: "name description schedule maxUsers cycleCode queues",
+        populate: {
+          path: "queues",
+          select: "name description location maxUsers deliverables order isActive",
+          options: { sort: { order: 1 } },
+        },
+      })
+      .populate("currentQueueId", "name location order")
+      .populate("completedQueues", "name order")
+      .lean()
+
+    if (!history) {
+      return NextResponse.json(
+        { success: false, message: "History not found" },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({ success: true, data: history })
 })

@@ -114,7 +114,7 @@ export const getAdminQueueHistory = catchAsyncErrors(async (req: NextRequest) =>
     .populate("cycleId", "name description")
     .populate("currentQueueId", "name location order")
     .populate("completedQueues", "name order")
-    .sort({ joinedAt: -1 })
+    .sort({ joinedAt: 1 })
     .lean()
 
   const total      = history.length

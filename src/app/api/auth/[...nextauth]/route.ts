@@ -10,10 +10,6 @@ type Credentials = {
   password: string
 }
 
-type Token = {
-  user: IUser
-}
-
 export const authOptions = (req: NextApiRequest, res: NextApiResponse):
  NextAuthOptions => ({
   session: { strategy: "jwt" },

@@ -107,8 +107,6 @@ const fetchBusinessCycles = async (adminId: string): Promise<{ cycles: OtherCycl
   return json.data
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
-
 export default function JoinCycleClient() {
   const searchParams  = useSearchParams()
   const router        = useRouter()
@@ -119,7 +117,7 @@ export default function JoinCycleClient() {
   const cycleIdParam = searchParams.get("cycleId")
   const hasQRParams  = !!(adminIdParam && cycleIdParam)
 
-  const [mode, setMode]               = useState<"qr" | "code" | "result">(hasQRParams ? "result" : "code")
+  const [mode, setMode] = useState<"qr" | "code">("code")
   const [codeInput, setCodeInput]     = useState("")
   const [codeError, setCodeError]     = useState("")
   const [resolvedData, setResolvedData] = useState<CycleResponse | null>(null)
@@ -127,7 +125,6 @@ export default function JoinCycleClient() {
   const [joinSuccess, setJoinSuccess] = useState(false)
   const [searchLoading, setSearchLoading] = useState(false)
 
-  // ── QR auto-fetch ─────────────────────────────────────────────────────────
   const { data: qrData, isLoading: qrLoading, error: qrError } = useQuery({
     queryKey: ["join-cycle-qr", adminIdParam, cycleIdParam],
     queryFn: () => fetchByQRParams(adminIdParam!, cycleIdParam!),
@@ -138,7 +135,6 @@ export default function JoinCycleClient() {
     if (qrData) setResolvedData(qrData)
   }, [qrData])
 
-  // ── Other cycles ──────────────────────────────────────────────────────────
   const adminId = resolvedData?.cycle?.adminId ?? adminIdParam ?? ""
 
   const { data: businessData, isLoading: businessLoading } = useQuery({
@@ -147,7 +143,6 @@ export default function JoinCycleClient() {
     enabled: !!adminId && showOtherCycles,
   })
 
-  // ── Code submit ───────────────────────────────────────────────────────────
   const handleCodeSubmit = async () => {
     if (!codeInput.trim()) { setCodeError("Please enter a cycle code"); return }
     const formatted = codeInput.trim().toUpperCase()
@@ -160,7 +155,6 @@ export default function JoinCycleClient() {
     try {
       const data = await fetchByCycleCode(formatted)
       setResolvedData(data)
-      setMode("result")
     } catch (err: any) {
       setCodeError(err.message ?? "Cycle not found")
     } finally {
@@ -191,7 +185,7 @@ export default function JoinCycleClient() {
   const activeSchedule  = cycle?.schedule.filter((s) => s.isActive) ?? []
 
   // ── Render: code entry ────────────────────────────────────────────────────
-  if (mode === "code" && !hasQRParams) {
+  if (mode === "code" && !hasQRParams && !cycle && !business) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 font-manrope">
         <div className="w-full max-w-md">
@@ -273,7 +267,7 @@ export default function JoinCycleClient() {
   }
 
   // ── Render: QR scanner ────────────────────────────────────────────────────
-  if (mode === "qr") {
+  if (mode === "qr" && !cycle && !business) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 font-manrope">
         <div className="w-full max-w-md bg-white rounded-2xl border border-gray-100 p-8 flex flex-col gap-6">
@@ -318,7 +312,6 @@ export default function JoinCycleClient() {
     )
   }
 
-  // ── Render: QR error ──────────────────────────────────────────────────────
   if (qrError && hasQRParams) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 font-manrope">
@@ -331,7 +324,7 @@ export default function JoinCycleClient() {
             <p className="text-xs text-gray-400 mt-1">{(qrError as Error).message}</p>
           </div>
           <button
-            onClick={() => { setMode("code"); router.replace("/join-cycle") }}
+            onClick={() => { setMode("code"); router.replace("/user/join-cycle") }}
             className="w-full bg-[#2347C5] text-white text-sm font-semibold py-3 rounded-xl hover:bg-[#1a38a8] transition-colors"
           >
             Try a cycle code instead
@@ -341,7 +334,6 @@ export default function JoinCycleClient() {
     )
   }
 
-  // ── Render: success ───────────────────────────────────────────────────────
   if (joinSuccess) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 font-manrope">
@@ -361,7 +353,6 @@ export default function JoinCycleClient() {
     )
   }
 
-  // ── Render: cycle result ──────────────────────────────────────────────────
   if (!cycle || !business) return null
 
   return (
@@ -369,7 +360,7 @@ export default function JoinCycleClient() {
       <div className="max-w-lg mx-auto flex flex-col gap-5">
 
         <button
-          onClick={() => { setMode("code"); setResolvedData(null); router.replace("/join-cycle") }}
+          onClick={() => {setResolvedData(null); router.replace("/join-cycle") }}
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 w-fit"
         >
           <MdOutlineArrowBack size={16} /> Back

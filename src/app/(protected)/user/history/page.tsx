@@ -15,8 +15,6 @@ import {
 import { HiOutlineQueueList } from "react-icons/hi2";
 import { BsArrowRight } from "react-icons/bs";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
 type CycleStatus = "waiting" | "inprogress" | "completed";
 
 interface QueueRef {
@@ -141,7 +139,6 @@ export default function UserHistoryPage() {
         </button>
       </div>
 
-      {/* ── Recent Queue section ── */}
       <section>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-semibold text-gray-800">Recent Queue</h3>
@@ -185,7 +182,7 @@ export default function UserHistoryPage() {
               <p className="text-xs text-gray-400 mt-1">Join a cycle to get started</p>
             </div>
             <Link
-              href="/join-cycle"
+              href="/user/join-cycle"
               className="text-sm text-[#2347C5] font-semibold hover:underline"
             >
               + Join a cycle
@@ -328,6 +325,18 @@ export default function UserHistoryPage() {
                       ))}
                     </div>
                   )}
+
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                    <p className="text-xs text-gray-400">
+                      {stats.completed} steps done
+                    </p>
+                    <Link
+                      href={`/user/history/detail/${entry._id}`}
+                      className="text-xs text-[#2347C5] font-semibold hover:underline flex items-center gap-1"
+                    >
+                      View Details →
+                    </Link>
+                  </div>
 
                 </div>
               )

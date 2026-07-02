@@ -1,4 +1,4 @@
-import {Document, Model,model, models, Schema} from "mongoose";
+import mongoose, {Document, Model,model, Schema, Types} from "mongoose";
 import bycrypt from 'bcryptjs'
 import crypto from 'crypto'
 
@@ -16,12 +16,14 @@ export interface IUser extends Document{
   businessAddress?: string;
   phoneNumber: string
   isVerified: boolean
-  role : string
+  role: "admin" | "user" | "queue_point"
   createdAt : Date
   resetPasswordToken : string
   resetPasswordExpire : string
   comparePassword(enteredPassword : string) : Promise<boolean>
   getResetPasswordToken() : string
+  assignedQueueId?: Types.ObjectId;
+  assignedAdminId?: Types.ObjectId;
 }
 
 export interface IUserModel extends Model<IUser>{
@@ -79,6 +81,7 @@ const userSchema : Schema<IUser> = new Schema({
   },
   role : {
     type : String,
+    enum: ["admin", "user", "queue_point"],
     default : 'user'
   },
   isVerified : {
@@ -90,7 +93,9 @@ const userSchema : Schema<IUser> = new Schema({
     default : Date.now
   },
   resetPasswordExpire : String,
-  resetPasswordToken : String
+  resetPasswordToken : String,
+  assignedQueueId: { type: Schema.Types.ObjectId, ref: "Queue", default: null },
+assignedAdminId: { type: Schema.Types.ObjectId, ref: "User",  default: null },
 })
 
 userSchema.pre("save", async function(next) {
@@ -127,4 +132,4 @@ userSchema.statics.findUserBySessionId = async function(sessionId : string):Prom
   return await this.find({sessionId}).select('-password')
 }
 
-export const User = (models.User as Model<IUser>) || model<IUser>('User', userSchema);
+export const User = (mongoose.models.User as Model<IUser>) || model<IUser>('User', userSchema);

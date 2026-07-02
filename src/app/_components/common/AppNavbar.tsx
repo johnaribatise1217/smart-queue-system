@@ -5,12 +5,17 @@ import { useSession } from "next-auth/react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useState } from "react";
 import Image from "next/image";
+import { useNotifications } from "@/hooks/use-notifications";
+import { NotificationDropdown } from "./NotificationsDropDown";
 
 export function AppNavbar() {
   const { data: session } = useSession();
   const user = session?.user;
   const role = user?.role || "user";
   const [search, setSearch] = useState("");
+
+  const { unreadCount, latest, markAllRead } = useNotifications()
+  const [showNotifications, setShowNotifications] = useState(false)
 
   const greeting = () => {
     const hour = new Date().getHours();
@@ -53,11 +58,23 @@ export function AppNavbar() {
 
         <div className="flex items-center gap-3 shrink-0 ml-auto">
           {/* Notification bell */}
-          <button className="relative w-9 h-9 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors">
-            <BellIcon />
-            {/* unread dot */}
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#3DBFA0] border-2 border-white" />
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => { setShowNotifications(!showNotifications); markAllRead() }}
+              className="relative w-9 h-9 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors"
+            >
+              <BellIcon />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 border-2 border-white flex items-center justify-center text-white text-[9px] font-bold">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <NotificationDropdown userId={session?.user?._id} onClose={() => setShowNotifications(false)} />
+            )}
+          </div>
 
           {/* User */}
           <div className="flex items-center gap-2.5 cursor-pointer group">

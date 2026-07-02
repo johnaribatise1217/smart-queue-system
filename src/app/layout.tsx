@@ -4,9 +4,7 @@ import { type Metadata } from "next";
 import {Manrope, Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "@/trpc/react";
-import { Toaster } from "sonner";
 import dbConnect from "backend/config/dbConnect";
-import { SessionProvider } from "next-auth/react";
 import { AuthProvider } from "./provider/AuthProvider";
 import { cn } from "@/lib/utils";
 

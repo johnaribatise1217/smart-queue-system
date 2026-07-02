@@ -31,7 +31,7 @@ interface Deliverable {
   acceptedFormats?: string[];
 }
 
-interface QueueStep {
+export interface QueueStep {
   _id: string;
   name: string;
   description: string;
@@ -51,7 +51,7 @@ interface ScheduleDay {
   isActive: boolean;
 }
 
-interface AdminInfo {
+export interface AdminInfo {
   _id: string;
   name: string;
   businessName?: string;
@@ -155,7 +155,7 @@ export default function CycleDetailsClient({ cycle, adminId }: Props) {
             }
           </button>
           <Link
-            href={`/admin/create-cycle?edit=${cycle._id}`}
+            href={`/admin/edit-cycle/${cycle._id}`}
             className="flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl bg-[#2347C5] text-white hover:bg-[#1a38a8] transition-colors"
           >
             <MdOutlineEdit size={14} /> Edit Cycle
@@ -213,7 +213,7 @@ export default function CycleDetailsClient({ cycle, adminId }: Props) {
                 <HiOutlineQueueList size={28} className="text-gray-300" />
                 <p className="text-xs text-gray-400">No queues in this cycle yet</p>
                 <Link
-                  href={`/admin/create-cycle?edit=${cycle._id}`}
+                  href={`/admin/edit-cycle/${cycle._id}`}
                   className="text-xs text-[#2347C5] font-semibold hover:underline"
                 >
                   + Add queues

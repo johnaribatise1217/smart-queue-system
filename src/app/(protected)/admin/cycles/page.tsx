@@ -261,7 +261,7 @@ export default function CyclesPage() {
                     {openMenuId === cycle._id && (
                       <div className="absolute right-0 top-9 bg-white border border-gray-100 rounded-xl shadow-lg py-1 z-20 min-w-[160px]">
                         <Link
-                          href={`/admin/create-cycle?edit=${cycle._id}`}
+                          href={`/admin/edit-cycle/${cycle._id}`}
                           className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-gray-600 hover:bg-gray-50 transition-colors"
                           onClick={() => setOpenMenuId(null)}
                         >

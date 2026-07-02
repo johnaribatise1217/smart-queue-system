@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn, useSession} from "next-auth/react";
 import type { SignInResponse } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -69,6 +69,16 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push(
+        session?.user?.role === "admin" ? "/admin/dashboard" : 
+        session?.user?.role === "queue_point" ? "/queue-point/dashboard" :
+        "/user/dashboard"
+      );
+    }
+  }, [status, session?.user?.role, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
@@ -84,8 +94,6 @@ export default function LoginPage() {
 
       if(result && (result as SignInResponse).ok) {
         successToast("Logged in successfully!");
-        const userRole = session?.user?.role;
-        router.push(userRole === "admin" ? "/admin/dashboard" : "/user/dashboard");
       } else {
         const msg = (result && (result as any).error) ?? 'Invalid credentials'
         errorToast(msg)
