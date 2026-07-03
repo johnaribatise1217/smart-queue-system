@@ -77,7 +77,9 @@ const userSchema : Schema<IUser> = new Schema({
   sessionId : {
     type : String,
     default : "",
-    unique : true
+    unique : true,
+    sparse : true,
+    required : false
   },
   role : {
     type : String,

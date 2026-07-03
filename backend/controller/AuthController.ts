@@ -20,8 +20,10 @@ export const registerUser = catchAsyncErrors(
         )
       }
 
+      const sessionId = crypto.randomUUID()
+
       await User.create({
-        name, email, password, phoneNumber, businessName, businessAddress, role
+        name, email, password, phoneNumber, businessName, businessAddress, role, sessionId: sessionId.toString()
       })
 
       const otpCode = generateOtp()
