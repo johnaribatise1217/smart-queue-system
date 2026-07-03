@@ -1,20 +1,37 @@
-import Redis from "ioredis"
+import Redis from "ioredis";
 
 const redisConfig = {
-  host:     process.env.REDIS_HOST!,
-  port:     parseInt(process.env.REDIS_PORT ?? "10541"),
+  host: process.env.REDIS_HOST!,
+  port: Number(process.env.REDIS_PORT),
   username: process.env.REDIS_USERNAME,
   password: process.env.REDIS_PASSWORD,
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
+};
+
+declare global {
+  // eslint-disable-next-line no-var
+  var redisPublisher: Redis | undefined;
+
+  // eslint-disable-next-line no-var
+  var redisSubscriber: Redis | undefined;
 }
 
-// publisher — used by workers to publish events
-export const redisPublisher = new Redis(redisConfig)
+export const redisPublisher =
+  global.redisPublisher ?? new Redis(redisConfig);
 
-// subscriber — used by SSE endpoints to subscribe to channels
-// must be a separate connection from publisher
-export const redisSubscriber = new Redis(redisConfig)
+export const redisSubscriber =
+  global.redisSubscriber ?? new Redis(redisConfig);
 
-redisPublisher.on("error",  (err) => console.error("Redis publisher error:", err))
-redisSubscriber.on("error", (err) => console.error("Redis subscriber error:", err))
+if (process.env.NODE_ENV !== "production") {
+  global.redisPublisher = redisPublisher;
+  global.redisSubscriber = redisSubscriber;
+}
+
+redisPublisher.on("error", (err) => {
+  console.error("Redis Publisher:", err);
+});
+
+redisSubscriber.on("error", (err) => {
+  console.error("Redis Subscriber:", err);
+});

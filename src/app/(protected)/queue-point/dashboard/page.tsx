@@ -8,7 +8,7 @@ import {
   MdOutlineArrowForward, MdOutlineLocationOn,
 } from "react-icons/md";
 import { HiOutlineQueueList } from "react-icons/hi2";
-import { errorToast } from "@/utils/toast";
+import { errorToast, successToast } from "@/utils/toast";
 
 interface QueueUser {
   _id: string;
@@ -42,7 +42,7 @@ export default function QueuePointDashboard() {
 
   const { mutate: advanceUser, isPending: advancing } = useMutation({
     mutationFn: async (history: QueueUser) => {
-      const res = await fetch("/api/queue-history/admin/advance", {
+      const res = await fetch("/api/queue-point/advance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -60,6 +60,7 @@ export default function QueuePointDashboard() {
       return json
     },
     onSuccess: () => {
+      successToast("User advanced successfully")
       queryClient.invalidateQueries({ queryKey: ["queue-point-dashboard", userId] })
     },
   })

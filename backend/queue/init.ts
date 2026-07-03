@@ -21,3 +21,23 @@ notificationWorker.on('completed', (job) => {
 notificationWorker.on('failed', (job, err) => {
   console.error(`Email job ${job?.id} failed with error: ${err.message}`)
 })
+
+process.on("SIGINT", async () => {
+  await Promise.all([
+    emailWorker.close(),
+    cycleWorker.close(),
+    notificationWorker.close(),
+  ]);
+
+  process.exit(0);
+});
+
+process.on("SIGTERM", async () => {
+  await Promise.all([
+    emailWorker.close(),
+    cycleWorker.close(),
+    notificationWorker.close(),
+  ]);
+
+  process.exit(0);
+});

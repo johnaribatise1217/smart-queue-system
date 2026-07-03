@@ -52,7 +52,7 @@ export function AppSidebar() {
 
   const ctaConfig = {
     admin:       { href: "/admin/create-cycle",    label: "Create a Cycle" },
-    user:        { href: "/join-cycle",            label: "Join a Queue" },
+    user:        { href: "/user/join-cycle",            label: "Join a Queue" },
     queue_point: { href: "/queue-point/dashboard", label: "My Queue" },
   }
   const cta = ctaConfig[role as keyof typeof ctaConfig] ?? ctaConfig.user

@@ -12,6 +12,15 @@ import Image from "next/image";
 
 type CycleStatus = "waiting" | "inprogress" | "completed";
 
+interface QueueETA {
+  position: number
+  avgProcessingMinutes: number
+  estimatedMinutes: number
+  estimatedTime: string
+  aiSummary: string
+  basedOnSamples: number
+}
+
 interface ActiveQueue {
   _id: string;
   cycleId: { _id: string; name: string; description: string };
@@ -20,6 +29,13 @@ interface ActiveQueue {
   cycleStatus: CycleStatus;
   isOnWaitingList: boolean;
   completedQueues: { _id: string; name: string; order: number }[];
+}
+
+const fetchQueueETA = async (queueId: string, position: number): Promise<QueueETA> => {
+  const res = await fetch(`/api/queue-point/eta?queueId=${queueId}&position=${position}`)
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.message)
+  return json.data
 }
 
 const fetchActiveQueue = async (userId: string): Promise<ActiveQueue | null> => {
@@ -45,6 +61,18 @@ export default function UserDashboardPage() {
   const tickets    = hasActive ? 1 : 0
   const position   = active?.position ?? 0
   const eta        = position > 1 ? `~${(position - 1) * 5}m` : hasActive ? "Soon" : 0
+
+  const queueId = active?.currentQueueId?._id
+
+  const { data: etaData, isLoading: etaLoading } = useQuery({
+    queryKey: ["queue-point-eta", queueId, position],
+    queryFn: () => fetchQueueETA(queueId!, position),
+    enabled: !!queueId && position > 0,
+    staleTime: 5000,
+  })
+
+  const etaLabel = etaData?.estimatedTime ?? (position > 1 ? `${(position - 1) * 5}m` : hasActive ? "Soon" : "0")
+  const aiSummary = etaData?.aiSummary ?? "Calculating queue summary..."
 
   return (
     <div className="flex flex-col gap-8 font-manrope">
@@ -100,10 +128,15 @@ export default function UserDashboardPage() {
           <QueueStatusCard
             title="ETA to Turn"
             description="Your estimated time to be attended to"
-            value={isLoading ? "..." : eta}
+            value={isLoading ? "..." : etaLabel}
             valueColor="bg-[#F5A623]"
           />
         </div>
+
+        <p>{etaLabel}</p>
+        {etaData?.aiSummary && (
+          <p className="text-sm text-gray-500">{aiSummary}</p>
+        )}
 
         {/* Active cycle strip */}
         {!isLoading && active && (

@@ -1,23 +1,56 @@
-import 'dotenv/config'
+import "dotenv/config";
 import mongoose from "mongoose";
 
-const dbConnect = async() => {
-  if(mongoose.connection.readyState >= 1){
-    return
-  }
-
-  let DB_URI : string = ""
-
-  if(process.env.NODE_ENV === "development") DB_URI = process.env.MONGODB_LOCAL_URI!
-  if(process.env.NODE_ENV === "production") DB_URI = process.env.MONGODB_URI!
-
-  try {
-    await mongoose.connect(DB_URI)
-    console.log('DB connected')
-  } catch (error) {
-    console.error("DB failed to connect:", error)
-    throw error
-  }
+declare global {
+  var mongooseCache:
+    | {
+        conn: typeof mongoose | null;
+        promise: Promise<typeof mongoose> | null;
+      }
+    | undefined;
 }
 
-export default dbConnect
+const cached = global.mongooseCache ?? {
+  conn: null,
+  promise: null,
+};
+
+global.mongooseCache = cached;
+
+async function dbConnect() {
+  if (cached.conn) {
+    return cached.conn;
+  }
+
+  let DB_URI = "";
+
+  if (process.env.NODE_ENV === "development") {
+    DB_URI = process.env.MONGODB_LOCAL_URI!;
+  } else {
+    DB_URI = process.env.MONGODB_URI!;
+  }
+
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(DB_URI, {
+      serverSelectionTimeoutMS: 10000,
+    });
+  }
+
+  cached.conn = await cached.promise;
+
+  return cached.conn;
+}
+
+mongoose.connection.on("connected", () => {
+  console.log("Mongo connected");
+});
+
+mongoose.connection.on("error", (err) => {
+  console.error("Mongo error:", err);
+});
+
+mongoose.connection.on("disconnected", () => {
+  console.log("Mongo disconnected");
+});
+
+export default dbConnect;

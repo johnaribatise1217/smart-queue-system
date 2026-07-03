@@ -5,6 +5,7 @@ import { Queue } from "backend/model/queueModel"
 import { QueueHistory } from "backend/model/queueHistory"
 import { cycleQueue } from "backend/queue/cycle/cycle.worker"
 import { User } from "backend/model/user";
+import dbConnect from "backend/config/dbConnect";
 
 export const createCycle = catchAsyncErrors(
   async (req: NextRequest) => {
@@ -201,6 +202,7 @@ export const addQueueToCycle = catchAsyncErrors(
 )
 
 export const joinCycle = catchAsyncErrors(async (req: NextRequest) => {
+  await dbConnect()
   const { userId, cycleId } = await req.json()
 
   const cycle = await Cycle.findById(cycleId)
@@ -332,6 +334,7 @@ export const getAllCyclesForAdmin = catchAsyncErrors(async (
   const adminId = searchParams.get("adminId")
   const cycles = await Cycle.find({ adminId: adminId })
     .select("name description isActive schedule maxUsers enrolledUsers waitingList queues createdAt")
+    .populate("queues", "name location isActive")
     .sort({ createdAt: -1 })
     .lean()
 

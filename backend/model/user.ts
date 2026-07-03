@@ -14,7 +14,7 @@ export interface IUser extends Document{
   sessionId: string
   businessName?: string;
   businessAddress?: string;
-  phoneNumber: string
+  phoneNumber?: string
   isVerified: boolean
   role: "admin" | "user" | "queue_point"
   createdAt : Date
@@ -50,6 +50,7 @@ const userSchema : Schema<IUser> = new Schema({
   phoneNumber: {
     type : String,
     unique : true,
+    default : null
   },
   businessName: {
     type : String,
@@ -97,7 +98,7 @@ const userSchema : Schema<IUser> = new Schema({
   resetPasswordExpire : String,
   resetPasswordToken : String,
   assignedQueueId: { type: Schema.Types.ObjectId, ref: "Queue", default: null },
-assignedAdminId: { type: Schema.Types.ObjectId, ref: "User",  default: null },
+  assignedAdminId: { type: Schema.Types.ObjectId, ref: "User",  default: null },
 })
 
 userSchema.pre("save", async function(next) {

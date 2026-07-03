@@ -1,5 +1,7 @@
 import { Queue, Worker } from 'bullmq';
 
+const queues = new Map<string, Queue>();
+
 export const QueueConnection = {
   host: process.env.REDIS_HOST,
   username: process.env.REDIS_USERNAME,
@@ -8,16 +10,46 @@ export const QueueConnection = {
 }
 
 export const generateQueue = (queueName: string) => {
-  return new Queue(queueName, {
-    connection : {...QueueConnection, maxRetriesPerRequest: null, enableReadyCheck: false}
-  })
-}
+  if (queues.has(queueName)) {
+    return queues.get(queueName)!;
+  }
 
-export const generateWorker = (queueName: string, processor: any) => {
+  const queue = new Queue(queueName, {
+    connection: {
+      ...QueueConnection,
+      maxRetriesPerRequest: null,
+      enableReadyCheck: false,
+    },
+  });
+
+  queues.set(queueName, queue);
+
+  return queue;
+};
+
+const workers = new Map<string, Worker>();
+
+export const generateWorker = (
+  queueName: string,
+  processor: any
+) => {
+  if (workers.has(queueName)) {
+    return workers.get(queueName)!;
+  }
+
   const worker = new Worker(queueName, processor, {
-    connection : {...QueueConnection, maxRetriesPerRequest: null, enableReadyCheck: false}
-  })
+    connection: {
+      ...QueueConnection,
+      maxRetriesPerRequest: null,
+      enableReadyCheck: false,
+    },
+  });
 
-  worker.on('ready', () => console.log(`Worker for ${queueName} is ready`))
-  return worker
-}
+  worker.on("ready", () =>
+    console.log(`${queueName} worker ready`)
+  );
+
+  workers.set(queueName, worker);
+
+  return worker;
+};

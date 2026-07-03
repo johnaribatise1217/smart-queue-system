@@ -31,11 +31,15 @@ export const createQueuePointAccount = catchAsyncErrors(async (req: NextRequest)
     )
   }
 
+  const sessionId = crypto.randomUUID()
+
   const queuePointUser = await User.create({
     name,
     email,
     password,
     role: "queue_point",
+    phoneNumber: "",
+    sessionId,
     isVerified: true,
     assignedQueueId: queueId,
     assignedAdminId: adminId,
