@@ -4,11 +4,13 @@ import { User } from "backend/model/user";
 import { NextRequest, NextResponse } from "next/server";
 import { generateOtp } from "backend/utils/otpGenerator";
 import { emailQueue } from "backend/queue/email/email.worker";
+import dbConnect from "backend/config/dbConnect";
 
 //register new user: /api/auth/register
 export const registerUser = catchAsyncErrors(
   async (req: NextRequest) => {
     try {
+      await dbConnect() // Ensure the database is connected before proceeding
       const body = await req.json()
       const {name, email, password, phoneNumber, businessName, businessAddress, role} = body
 
