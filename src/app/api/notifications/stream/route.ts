@@ -100,15 +100,16 @@ export async function GET(req: NextRequest) {
         } catch {}
       }, 25000);
 
-      req.signal.addEventListener("abort", async () => {
-        clearInterval(heartbeat);
-
-        redisSubscriber.off("message", onMessage);
-
-        await redisSubscriber.unsubscribe(channel);
-
-        controller.close();
-      });
+      req.signal.addEventListener(
+        "abort",
+        async () => {
+          clearInterval(heartbeat);
+          redisSubscriber.off("message", onMessage);
+          await redisSubscriber.unsubscribe(channel);
+          controller.close();
+        },
+        { once: true }
+      );
     },
   });
 

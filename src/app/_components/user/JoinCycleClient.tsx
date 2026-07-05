@@ -21,6 +21,7 @@ import {
 } from "react-icons/md";
 import { HiOutlineQueueList } from "react-icons/hi2";
 import { BsArrowDown } from "react-icons/bs";
+import { errorToast } from "@/utils/toast";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -171,7 +172,11 @@ export default function JoinCycleClient() {
         body: JSON.stringify({ userId, cycleId: resolvedData!.cycle._id }),
       })
       const json = await res.json()
-      if (!res.ok) throw new Error(json.message ?? "Failed to join cycle")
+      if (!res.ok) {
+        console.error("Failed to join cycle:", json)
+        errorToast(json.message ?? "Failed to join cycle")
+        throw new Error(json.message ?? "Failed to join cycle")
+      }
       return json
     },
     onSuccess: () => {

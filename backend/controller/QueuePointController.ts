@@ -38,7 +38,6 @@ export const createQueuePointAccount = catchAsyncErrors(async (req: NextRequest)
     email,
     password,
     role: "queue_point",
-    phoneNumber: "",
     sessionId,
     isVerified: true,
     assignedQueueId: queueId,

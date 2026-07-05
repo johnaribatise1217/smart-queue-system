@@ -2,6 +2,7 @@ import 'dotenv/config'
 import { emailWorker } from "./email/email.worker"
 import { cycleWorker } from './cycle/cycle.worker'
 import { notificationWorker } from './notification/notification.worker'
+import {redisPublisher, redisSubscriber} from "backend/config/redis"
 
 emailWorker.on('completed', (job) => {
   console.log(`Email job ${job.id} completed successfully.`)
@@ -29,14 +30,9 @@ process.on("SIGINT", async () => {
     notificationWorker.close(),
   ]);
 
-  process.exit(0);
-});
-
-process.on("SIGTERM", async () => {
-  await Promise.all([
-    emailWorker.close(),
-    cycleWorker.close(),
-    notificationWorker.close(),
+  await Promise.allSettled([
+    redisPublisher.quit(),
+    redisSubscriber.quit(),
   ]);
 
   process.exit(0);

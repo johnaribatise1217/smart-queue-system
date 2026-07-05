@@ -202,7 +202,6 @@ export const addQueueToCycle = catchAsyncErrors(
 )
 
 export const joinCycle = catchAsyncErrors(async (req: NextRequest) => {
-  await dbConnect()
   const { userId, cycleId } = await req.json()
 
   const cycle = await Cycle.findById(cycleId)

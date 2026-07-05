@@ -50,7 +50,7 @@ const userSchema : Schema<IUser> = new Schema({
   phoneNumber: {
     type : String,
     unique : true,
-    default : null
+    default : "",
   },
   businessName: {
     type : String,
