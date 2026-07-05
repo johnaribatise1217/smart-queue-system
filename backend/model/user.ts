@@ -49,7 +49,6 @@ const userSchema : Schema<IUser> = new Schema({
   },
   phoneNumber: {
     type: String,
-    unique: true,
     sparse: true,
     default: undefined,
   },
