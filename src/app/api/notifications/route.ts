@@ -5,7 +5,6 @@ import dbConnect from "backend/config/dbConnect"
 
 // GET /api/notifications?userId=xxx&unreadOnly=true
 export const GET = catchAsyncErrors(async (req: NextRequest) => {
-  await dbConnect()
   const { searchParams } = new URL(req.url)
   const userId     = searchParams.get("userId")
   const unreadOnly = searchParams.get("unreadOnly") === "true"
@@ -27,7 +26,6 @@ export const GET = catchAsyncErrors(async (req: NextRequest) => {
 
 // PATCH /api/notifications — mark all as read
 export const PATCH = catchAsyncErrors(async (req: NextRequest) => {
-  await dbConnect()
   const { userId, notificationId } = await req.json()
 
   if (notificationId) {

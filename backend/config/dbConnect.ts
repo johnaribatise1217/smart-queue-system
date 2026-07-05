@@ -17,40 +17,32 @@ const cached = global.mongooseCache ?? {
 
 global.mongooseCache = cached;
 
+mongoose.set("bufferCommands", false);
+
 async function dbConnect() {
-  if (cached.conn) {
+  if (cached.conn?.connection?.readyState === 1) {
     return cached.conn;
   }
 
-  let DB_URI = "";
-
-  if (process.env.NODE_ENV === "development") {
-    DB_URI = process.env.MONGODB_LOCAL_URI!;
-  } else {
-    DB_URI = process.env.MONGODB_URI!;
-  }
-
   if (!cached.promise) {
-    cached.promise = mongoose.connect(DB_URI, {
-      serverSelectionTimeoutMS: 10000,
-    });
+    const DB_URI =
+      process.env.NODE_ENV === "development"
+        ? process.env.MONGODB_LOCAL_URI!
+        : process.env.MONGODB_URI!;
+
+    cached.promise = mongoose
+      .connect(DB_URI, {
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+      })
+      .catch((err) => {
+        cached.promise = null;
+        throw err;
+      });
   }
 
   cached.conn = await cached.promise;
-
   return cached.conn;
 }
-
-mongoose.connection.on("connected", () => {
-  console.log("Mongo connected");
-});
-
-mongoose.connection.on("error", (err) => {
-  console.error("Mongo error:", err);
-});
-
-mongoose.connection.on("disconnected", () => {
-  console.log("Mongo disconnected");
-});
 
 export default dbConnect;

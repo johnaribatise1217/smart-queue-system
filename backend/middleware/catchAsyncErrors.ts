@@ -1,3 +1,4 @@
+import dbConnect from "backend/config/dbConnect";
 import { NextRequest, NextResponse } from "next/server";
 
 type HandlerFunction = (req : NextRequest, params? : any) => Promise<NextResponse>
@@ -9,6 +10,7 @@ interface IValidationError {
 export const catchAsyncErrors = (handler : HandlerFunction) => 
   async(req : NextRequest , params? : any) => {
     try {
+      await dbConnect();
       return await handler(req, params)
     } catch (error : any) {
       console.log(error)
