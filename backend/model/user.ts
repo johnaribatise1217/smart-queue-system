@@ -48,9 +48,10 @@ const userSchema : Schema<IUser> = new Schema({
     select : false
   },
   phoneNumber: {
-    type : String,
-    unique : true,
-    default : "",
+    type: String,
+    unique: true,
+    sparse: true,
+    default: undefined,
   },
   businessName: {
     type : String,
