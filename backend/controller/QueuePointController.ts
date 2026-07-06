@@ -37,7 +37,6 @@ export const createQueuePointAccount = catchAsyncErrors(async (req: NextRequest)
     name,
     email,
     password,
-    phoneNumber: "",
     role: "queue_point",
     sessionId,
     isVerified: true,
@@ -101,7 +100,7 @@ export const getQueuePointDashboard = catchAsyncErrors(async (req: NextRequest) 
       currentQueueId: queueId,
       cycleStatus: "inprogress",
     })
-      .populate("userId", "name email phoneNumber avatar")
+      .populate("userId", "name email avatar")
       .populate("cycleId", "name")
       .sort({ position: 1 })
       .lean(),
@@ -112,7 +111,7 @@ export const getQueuePointDashboard = catchAsyncErrors(async (req: NextRequest) 
       cycleStatus: "waiting",
       isOnWaitingList: false,
     })
-      .populate("userId", "name email phoneNumber avatar")
+      .populate("userId", "name email avatar")
       .populate("cycleId", "name")
       .sort({ position: 1 })
       .lean(),

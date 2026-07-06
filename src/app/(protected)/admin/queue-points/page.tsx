@@ -35,7 +35,7 @@ export default function AdminQueuePointsPage() {
   const [formError, setFormError] = useState("")
 
   // fetch queue point accounts
-  const { data: accounts = [], isLoading } = useQuery({
+  const { data: accounts = [], isLoading, refetch } = useQuery({
     queryKey: ["queue-point-accounts", adminId],
     queryFn: async () => {
       const res  = await fetch(`/api/queue-point?adminId=${adminId}`)
@@ -89,6 +89,7 @@ export default function AdminQueuePointsPage() {
       setShowForm(false)
       setForm({ name: "", email: "", password: "", queueId: "" })
       setFormError("")
+      refetch()
     },
     onError: (err: any) => {
       setFormError(err.message ?? "Failed to create account")

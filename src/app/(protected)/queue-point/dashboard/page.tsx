@@ -12,7 +12,7 @@ import { errorToast, successToast } from "@/utils/toast";
 
 interface QueueUser {
   _id: string;
-  userId: { _id: string; name: string; email: string; phoneNumber: string; avatar?: { url: string } };
+  userId: { _id: string; name: string; email: string; avatar?: { url: string } };
   position: number;
   cycleStatus: string;
   cycleId: { _id: string; name: string };
@@ -181,7 +181,7 @@ export default function QueuePointDashboard() {
                 {/* User info */}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-800 truncate">{entry.userId.name}</p>
-                  <p className="text-xs text-gray-400">{entry.userId.phoneNumber}</p>
+                  <p className="text-xs text-gray-400">{entry.userId.email}</p>
                 </div>
 
                 {/* Cycle name */}

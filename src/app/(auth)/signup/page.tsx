@@ -16,7 +16,6 @@ interface FormErrors {
   email?: string;
   businessName?: string;
   businessAddress?: string;
-  phoneNumber?: string;
   password?: string;
   confirmPassword?: string;
 }
@@ -24,7 +23,7 @@ interface FormErrors {
 export default function SignupPage() {
   const router = useRouter();
   const [form, setForm] = useState({
-    name: "", email: "", phoneNumber: "", password: "", confirmPassword: "", businessName: "", businessAddress: "",
+    name: "", email: "", password: "", confirmPassword: "", businessName: "", businessAddress: "",
   });
   const [role, setRole] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -46,12 +45,10 @@ export default function SignupPage() {
     if (!form.name.trim()) e.name = "Full name is required";
     if (!form.email) e.email = "Email is required";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Valid email address";
-    if (!form.phoneNumber.trim()) e.phoneNumber = "Phone number is required";
     if(role === "admin") {
       if (!form.businessName.trim()) e.businessName = "Business name is required";
       if (!form.businessAddress.trim()) e.businessAddress = "Business address is required";
     }
-    else if (!/^\+?[\d\s\-]{7,15}$/.test(form.phoneNumber)) e.phoneNumber = "Enter a valid phone number";
     if (!form.password) e.password = "Password is required";
     else if (form.password.length < 8) e.password = "Minimum 8 characters";
     if (!form.confirmPassword) e.confirmPassword = "Please confirm your password";
@@ -139,18 +136,6 @@ export default function SignupPage() {
               placeholder="Email address"
               value={form.email}
               onChange={(e) => update("email", e.target.value)}
-              className="flex-1 py-3 text-sm outline-none bg-transparent placeholder:text-gray-300"
-            />
-          </InputRow>
-        </Field>
-
-        <Field label="Phone number" error={errors.phoneNumber}>
-          <InputRow icon={<FaPhone />} error={!!errors.phoneNumber}>
-            <input
-              type="tel"
-              placeholder="234"
-              value={form.phoneNumber}
-              onChange={(e) => update("phoneNumber", e.target.value)}
               className="flex-1 py-3 text-sm outline-none bg-transparent placeholder:text-gray-300"
             />
           </InputRow>

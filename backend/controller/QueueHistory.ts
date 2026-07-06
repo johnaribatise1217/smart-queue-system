@@ -110,7 +110,7 @@ export const getAdminQueueHistory = catchAsyncErrors(async (req: NextRequest) =>
   }
 
   const history = await QueueHistory.find(query)
-    .populate("userId", "name email phoneNumber avatar")
+    .populate("userId", "name email avatar")
     .populate("cycleId", "name description")
     .populate("currentQueueId", "name location order")
     .populate("completedQueues", "name order")

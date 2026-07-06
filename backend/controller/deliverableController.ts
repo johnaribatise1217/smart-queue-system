@@ -42,7 +42,7 @@ export const getQueueDeliverables = catchAsyncErrors(async (req: NextRequest) =>
   if (status) query.status = status
 
   const submissions = await DeliverableSubmission.find(query)
-    .populate("userId", "name email phoneNumber avatar")
+    .populate("userId", "name email avatar")
     .sort({ createdAt: -1 })
     .lean()
 

@@ -12,7 +12,7 @@ export const registerUser = catchAsyncErrors(
     try {
       await dbConnect() // Ensure the database is connected before proceeding
       const body = await req.json()
-      const {name, email, password, phoneNumber, businessName, businessAddress, role} = body
+      const {name, email, password, businessName, businessAddress, role} = body
 
       const existingUser = await User.findOne({ email })
       if (existingUser) {
@@ -25,7 +25,7 @@ export const registerUser = catchAsyncErrors(
       const sessionId = crypto.randomUUID()
 
       await User.create({
-        name, email, password, phoneNumber, businessName, businessAddress, role, sessionId: sessionId.toString()
+        name, email, password, businessName, businessAddress, role, sessionId: sessionId.toString()
       })
 
       const otpCode = generateOtp()

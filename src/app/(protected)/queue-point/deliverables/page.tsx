@@ -12,7 +12,7 @@ import { HiOutlineQueueList } from "react-icons/hi2";
 
 interface Submission {
   _id: string;
-  userId: { _id: string; name: string; email: string; phoneNumber: string; avatar?: { url: string } };
+  userId: { _id: string; name: string; email: string; avatar?: { url: string } };
   deliverableName: string;
   type: string;
   fileUrl?: string;
@@ -159,7 +159,7 @@ export default function QueuePointDeliverablesPage() {
                   )}
                   <div>
                     <p className="text-sm font-semibold text-gray-800">{s.userId.name}</p>
-                    <p className="text-xs text-gray-400">{s.userId.phoneNumber}</p>
+                    <p className="text-xs text-gray-400">{s.userId.email}</p>
                   </div>
                 </div>
 

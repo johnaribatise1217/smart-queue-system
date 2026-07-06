@@ -56,7 +56,6 @@ export const authOptions = (req: NextApiRequest, res: NextApiResponse):
         if (!existingUser) {
           existingUser = await User.create({
             name: user.name,
-            phoneNumber: "",
             email: user.email,
             password: Math.random().toString(36).slice(-8),
             googleId: user.id,

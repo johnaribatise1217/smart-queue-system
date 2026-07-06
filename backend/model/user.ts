@@ -14,7 +14,6 @@ export interface IUser extends Document{
   sessionId: string
   businessName?: string;
   businessAddress?: string;
-  phoneNumber?: string
   isVerified: boolean
   role: "admin" | "user" | "queue_point"
   createdAt : Date
@@ -46,11 +45,6 @@ const userSchema : Schema<IUser> = new Schema({
     // required : [true, "Please enter password"],
     minlength : [8, "your password must be longer than 8 characters"],
     select : false
-  },
-  phoneNumber: {
-    type: String,
-    sparse: true,
-    default: undefined,
   },
   businessName: {
     type : String,
